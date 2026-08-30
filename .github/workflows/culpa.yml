@@ -1,0 +1,36 @@
+name: culpa
+
+# Proves the harness is real on every push: the 7 reference exploits must compile and land,
+# the unit tests must pass, and every case file must validate. No model calls, no secrets.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Culpa
+        run: pip install -e ".[dev]"
+
+      - name: Unit tests
+        run: pytest -q
+
+      - name: Case files validate
+        run: culpa check
+
+      - uses: foundry-rs/foundry-toolchain@v1
+
+      - name: forge-std
+        run: forge install foundry-rs/forge-std --root proofground --no-git
+
+      - name: Reference exploits compile and land
+        run: culpa verify

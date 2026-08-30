@@ -9,7 +9,7 @@ max_tokens: 8192
 
 sleuth:
   max_leads: 4
-  max_proof_attempts: 4
+  max_proof_attempts: 6
   min_severity_to_prove: medium      # only medium/high leads get an exploit written
   demote_unproven_high: false        # if true, a high-sev finding with no landed exploit is downgraded
 

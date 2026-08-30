@@ -32,11 +32,32 @@ funds / breaks the invariant). The proceedings score detection quality (precisio
 noise on sound contracts, and — the headline number — the **proven-exploit rate**: what share
 of the "high severity" findings come with an exploit a judge can re-run.
 
-## Who it's for
+## Who it's for, and what it saves them
 
-A protocol team doing a last look before deployment, or an auditor triaging a scanner's forty
-warnings. Their bottleneck: they can't tell which warnings are real without hand-writing the
-attack, and that's most of the work.
+**The user:** an auditor or a protocol engineer doing a pre-deployment review.
+
+**Their bottleneck today:** run Slither on a 2,000-line protocol, get ~40 warnings, most of them
+false. There is no way to know which few are real without hand-writing an exploit for each —
+setting up the contracts, the attacker, the flash loan, running it, checking the balance. That
+triage is a day or two of senior time, and it is the expensive part of an audit; writing the
+report around confirmed findings is comparatively quick.
+
+**What Culpa does:** it does that triage. In ~3 minutes and about a cent (free-tier model), it
+takes the same contract and hands back only the findings it could *prove* — each with a Foundry
+test that drains the funds on a local chain, the profit it extracted, and a remediation. A
+finding without a landed exploit is labelled a lead, not a finding, so the reviewer's attention
+goes to what is real.
+
+## Related work
+
+Agentic exploit generation is not new — A1 (arXiv 2507.05558) and PoCo (2511.02780) both drive
+an LLM to produce executable PoCs, and production tools (Nethermind AuditAgent, Octane) combine
+static analysis with LLM reasoning. Culpa's contribution is narrower and different: a
+**reproducible baseline-vs-agent harness** — the same 10 labelled contracts scored the same way
+for Slither, a one-shot prompt, and the agent — plus a **pre-deployment, source-first,
+deterministic-local** focus (no mainnet fork, the exploit is a regression test the team keeps).
+The interesting artifact here is the measurement rig, not the fact that a model can write an
+exploit.
 
 ## Layout
 
