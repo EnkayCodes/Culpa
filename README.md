@@ -13,11 +13,13 @@ On 10 contracts (7 vulnerable across 7 flaw kinds, 3 sound), free-tier `gemini-3
 
 | | Slither | one-shot LLM | **Culpa's sleuth** |
 |---|---|---|---|
-| Exploits proven with a runnable PoC | **0 / 7** | 0 / 7 | **6–7 / 7** |
+| Exploits proven with a runnable PoC | **0 / 7** | 0 / 7 | **6 / 7** |
 | Flaw-kind F1 | 0.30 | 0.71 | **1.00** |
 | False-flags on sound contracts | **3 / 3** | 0 / 3 | **0 / 3** |
 
-Frozen run + trajectories: [`submission/`](submission/).
+Every flaw is identified correctly; 6 of 7 come with an exploit that runs and moves the money on
+a local chain (the 7th, a 3-contract flash-loan attack, lands on some runs — see `CHANGELOG.md`).
+Frozen run + full agent trajectories: [`submission/`](submission/).
 
 ---
 

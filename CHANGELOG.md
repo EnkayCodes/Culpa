@@ -35,17 +35,20 @@ executable on-chain exploit. Every row links to evidence in `findings/`.
 ## Scanner against sleuth
 
 Measured on the `committed` set — 10 contracts, 7 vulnerable across 7 flaw kinds, 3 sound.
-Full table in `submission/comparison.md`.
+Frozen run in `submission/` (`sleuth.json`, `comparison.md`, `audit.md`, `casebooks/`).
 
-| Measure | Slither | first glance | Sleuth | Δ (Slither → Sleuth) |
+| Measure | Slither | first glance | Sleuth (frozen run) | Δ (Slither → Sleuth) |
 |---|---|---|---|---|
-| Proven-exploit rate | 0 / 7 | 0 / 7 | **6–7 / 7** | +0.86–1.00 |
+| Proven-exploit rate | 0 / 7 | 0 / 7 | **6 / 7 (0.86)** | +0.86 |
 | Flaw-kind micro-F1 | 0.30 | 0.71 | **1.00** | +0.70 |
-| Flaw-kind macro-F1 | 0.35 | — | **1.00** | +0.65 |
+| Flaw-kind macro-F1 | 0.35 | 0.44 | **1.00** | +0.65 |
 | Noise on sound contracts | 1.00 (3/3) | 0.00 | **0.00** | −1.00 |
 | Unbacked exploit claims | 0 | 0 | **0** | — |
 | Cost per contract | $0.00 | ~$0.0001 | ~$0.0002 | — |
-| Time per contract | ~0.7 s | ~2.7 s | ~9 s | — |
+| Time per contract | ~0.7 s | ~2.7 s | ~13 s | — |
+
+The one case not landed in the frozen run is `HallOfMirrors` — its kind is still identified
+correctly, and it landed in other runs (see the variance note above).
 
 ### On variance
 
