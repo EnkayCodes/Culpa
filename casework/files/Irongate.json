@@ -1,0 +1,15 @@
+{
+  "name": "Irongate",
+  "origin": "custom",
+  "headline": "A sound vault: writes the balance down before it pays out, and bars re-entry",
+  "compiler_version": "0.8.20",
+  "subject_path": "contracts/Irongate.sol",
+  "known_truth": {
+    "is_vulnerable": false,
+    "flaws": []
+  },
+  "expected_proof": {
+    "provable": false
+  },
+  "tags": ["sound", "control", "noise-check"]
+}

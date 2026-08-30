@@ -1,0 +1,27 @@
+{
+  "name": "HollowVault",
+  "origin": "custom",
+  "headline": "A vault that pays out before it writes down the balance (DAO-style reentrancy)",
+  "compiler_version": "0.8.20",
+  "subject_path": "contracts/HollowVault.sol",
+  "known_truth": {
+    "is_vulnerable": true,
+    "flaws": [
+      {
+        "category": "reentrancy",
+        "severity": "high",
+        "swc": "SWC-107",
+        "lines": [13, 17, 18, 19, 20],
+        "note": "the external call in withdraw runs before balances[msg.sender] is zeroed"
+      }
+    ]
+  },
+  "expected_proof": {
+    "provable": true,
+    "mode": "local",
+    "min_profit_wei": "4000000000000000000",
+    "reference_proof": "proofs/HollowVault.t.sol",
+    "notes": "A depositor puts in 5 ether; the attacker deposits 1 ether and walks the whole 6-ether pot out."
+  },
+  "tags": ["reentrancy", "committed", "local"]
+}

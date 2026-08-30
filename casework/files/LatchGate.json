@@ -1,0 +1,15 @@
+{
+  "name": "LatchGate",
+  "origin": "custom",
+  "headline": "A sound till: operator-only administration, two-step ownership, checks before effects",
+  "compiler_version": "0.8.20",
+  "subject_path": "contracts/LatchGate.sol",
+  "known_truth": {
+    "is_vulnerable": false,
+    "flaws": []
+  },
+  "expected_proof": {
+    "provable": false
+  },
+  "tags": ["sound", "control", "noise-check", "access-control"]
+}

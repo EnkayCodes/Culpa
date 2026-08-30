@@ -1,0 +1,27 @@
+{
+  "name": "OpenTill",
+  "origin": "custom",
+  "headline": "Anyone can call drain() and sweep the whole balance to an address of their choosing",
+  "compiler_version": "0.8.20",
+  "subject_path": "contracts/OpenTill.sol",
+  "known_truth": {
+    "is_vulnerable": true,
+    "flaws": [
+      {
+        "category": "access-control",
+        "severity": "high",
+        "swc": "SWC-105",
+        "lines": [21, 22, 23],
+        "note": "drain() has no caller check; it is intended for the operator but open to all"
+      }
+    ]
+  },
+  "expected_proof": {
+    "provable": true,
+    "mode": "local",
+    "min_profit_wei": "4000000000000000000",
+    "reference_proof": "proofs/OpenTill.t.sol",
+    "notes": "A depositor puts in 5 ether; an unrelated account calls drain(attacker) and takes all of it."
+  },
+  "tags": ["access-control", "committed", "local", "easy"]
+}

@@ -1,0 +1,24 @@
+{
+  "name": "PendingCase",
+  "origin": "defihacklabs",
+  "headline": "TEMPLATE — a real past incident to fill in from DeFiHackLabs (fork case)",
+  "snapshot": { "chain": "mainnet", "block": 16818056, "rpc_env": "MAINNET_RPC_URL" },
+  "subjects": [
+    { "name": "TheProtocol", "address": "0x0000000000000000000000000000000000000000" }
+  ],
+  "known_truth": {
+    "is_vulnerable": true,
+    "flaws": [
+      { "category": "price-oracle-manipulation", "severity": "high",
+        "note": "swap in the real root cause from the post-mortem" }
+    ]
+  },
+  "expected_proof": {
+    "provable": true,
+    "mode": "fork",
+    "min_profit_wei": "1000000000000000000",
+    "reference_proof": "proofs/PendingCase.t.sol",
+    "notes": "Port the DeFiHackLabs exploit; keep the fork block one before the attack transaction."
+  },
+  "tags": ["fork", "template", "leave-out-until-filled"]
+}

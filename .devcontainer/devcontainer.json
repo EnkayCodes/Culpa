@@ -1,0 +1,16 @@
+{
+  "name": "marlowe",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {}
+  },
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/home/vscode/.foundry/bin:/home/vscode/.local/bin"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python", "tamasfe.even-better-toml", "NomicFoundation.hardhat-solidity"]
+    }
+  }
+}

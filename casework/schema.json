@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Marlowe case file",
+  "type": "object",
+  "required": ["name", "origin", "known_truth"],
+  "additionalProperties": false,
+  "properties": {
+    "name": { "type": "string", "pattern": "^[A-Za-z]+$" },
+    "origin": { "enum": ["smartbugs-curated", "defihacklabs", "custom"] },
+    "headline": { "type": "string" },
+    "compiler_version": { "type": "string" },
+    "subject_path": { "type": "string" },
+    "subjects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "address": { "type": "string" },
+          "path": { "type": "string" }
+        }
+      }
+    },
+    "snapshot": {
+      "type": "object",
+      "required": ["block"],
+      "additionalProperties": false,
+      "properties": {
+        "chain": { "type": "string" },
+        "block": { "type": "integer", "minimum": 1 },
+        "rpc_env": { "type": "string" }
+      }
+    },
+    "known_truth": {
+      "type": "object",
+      "required": ["is_vulnerable"],
+      "additionalProperties": false,
+      "properties": {
+        "is_vulnerable": { "type": "boolean" },
+        "flaws": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["category"],
+            "additionalProperties": false,
+            "properties": {
+              "category": { "type": "string" },
+              "severity": { "enum": ["high", "medium", "low", "info"] },
+              "swc": { "type": "string" },
+              "lines": { "type": "array", "items": { "type": "integer" } },
+              "note": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "expected_proof": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "provable": { "type": "boolean" },
+        "min_profit_wei": { "type": "string" },
+        "reference_proof": { "type": "string" },
+        "mode": { "enum": ["local", "fork"] },
+        "notes": { "type": "string" }
+      }
+    },
+    "tags": { "type": "array", "items": { "type": "string" } }
+  }
+}

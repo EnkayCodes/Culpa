@@ -1,0 +1,36 @@
+# python
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+
+# env / secrets
+.env
+
+# foundry
+proofground/out/
+proofground/cache/
+proofground/broadcast/
+proofground/lib/
+
+# gathered cases (keep the committed ones, drop the rest)
+casework/contracts/*
+!casework/contracts/HollowVault.sol
+!casework/contracts/OpenTill.sol
+!casework/contracts/Irongate.sol
+!casework/contracts/LatchGate.sol
+!casework/contracts/HallOfMirrors.sol
+casework/proofs/*
+!casework/proofs/HollowVault.t.sol
+!casework/proofs/OpenTill.t.sol
+!casework/proofs/HallOfMirrors.t.sol
+
+# run output
+findings/*
+!findings/.gitkeep
+casebooks/*
+!casebooks/.gitkeep
+proofground/test/staged/*
+!proofground/test/staged/.gitkeep

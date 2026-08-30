@@ -1,0 +1,31 @@
+{
+  "name": "HallOfMirrors",
+  "origin": "custom",
+  "headline": "A flash loan bends a lending shop's own price feed until a tiny deposit looks huge",
+  "compiler_version": "0.8.20",
+  "subject_path": "contracts/HallOfMirrors.sol",
+  "subjects": [
+    { "name": "PawnShop", "path": "contracts/HallOfMirrors.sol" },
+    { "name": "MirrorPool", "path": "contracts/HallOfMirrors.sol" },
+    { "name": "QuickLoan", "path": "contracts/HallOfMirrors.sol" }
+  ],
+  "known_truth": {
+    "is_vulnerable": true,
+    "flaws": [
+      {
+        "category": "price-oracle-manipulation",
+        "severity": "high",
+        "lines": [84, 164, 165, 166],
+        "note": "PawnShop._withinLimit trusts MirrorPool's spot price, which QuickLoan lets an attacker move within one transaction. Vector: flash-loan-attack."
+      }
+    ]
+  },
+  "expected_proof": {
+    "provable": true,
+    "mode": "local",
+    "min_profit_wei": "100000000000000000000000",
+    "reference_proof": "proofs/HallOfMirrors.t.sol",
+    "notes": "Attacker pledges about a thousand stake, uses a 490k cash flash loan to push the spot price roughly 25x, draws 900k cash against the inflated value, unwinds and repays. The scanner cannot see this."
+  },
+  "tags": ["hard", "economic", "price-oracle-manipulation", "flash-loan", "local", "multi-contract"]
+}

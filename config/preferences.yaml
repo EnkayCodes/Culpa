@@ -1,0 +1,30 @@
+# How Marlowe runs. Env vars (MARLOWE_*) win over these; see .env.example.
+
+# Google Gemini model id. Free tier: gemini-2.5-flash (workhorse) or gemini-2.0-flash.
+# gemini-2.5-pro is stronger but has a much smaller free-tier daily quota.
+model: gemini-2.5-flash
+max_tokens: 8000
+
+sleuth:
+  max_leads: 6
+  max_proof_attempts: 3
+  min_severity_to_prove: medium      # only medium/high leads get an exploit written
+  demote_unproven_high: false        # if true, a high-sev finding with no landed exploit is downgraded
+
+proof:
+  timeout_s: 180
+  proofground: proofground
+  fuzz_seed: 424242
+
+casework:
+  root: casework
+
+groups:
+  quick: [HollowVault, OpenTill, Irongate]
+  easy: [HollowVault, OpenTill]
+  sound: [Irongate, LatchGate]
+  hard: [HallOfMirrors]
+  committed: [HollowVault, OpenTill, Irongate, LatchGate, HallOfMirrors]
+
+# kinds of flaw where the scanner is essentially blind — reported on their own line
+weak_spot_kinds: [price-oracle-manipulation, flash-loan-attack, logic-error, bad-accounting]
