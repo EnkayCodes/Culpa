@@ -77,6 +77,9 @@ def ask(instructions: str, question: str, *, model: str | None = None,
             temperature=temperature,
             max_output_tokens=max_tokens,
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+            # 2.5-flash thinks by default and thinking tokens eat max_output_tokens, which
+            # truncated exploit files mid-line. Turn it off for these single-shot tasks.
+            thinking_config=types.ThinkingConfig(thinking_budget=0),
         ),
     )
 

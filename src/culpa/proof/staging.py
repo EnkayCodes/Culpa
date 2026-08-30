@@ -102,12 +102,17 @@ def stage(draft: ExploitDraft, timeout_s: int | None = None) -> ProofOutcome:
 
     outcome.compiled = True
     outcome.ran = True
-    landed, profit, reason = _judge(parsed, draft.proof_contract)
+    landed, profit, reason, console = _judge(parsed, draft.proof_contract)
     outcome.passed = landed
     outcome.exploit_landed = landed
     outcome.profit = profit
-    if not landed and reason:
-        outcome.error = f"exploit ran but did not land: {reason}"
+    if not landed:
+        bits = ["exploit compiled and ran but did not land"]
+        if reason:
+            bits.append(f"revert: {reason}")
+        if console:
+            bits.append("console: " + " ; ".join(console[:8]))
+        outcome.error = ". ".join(bits)
     return outcome
 
 
@@ -136,12 +141,13 @@ def _compile_error(stderr: str) -> str:
     return "compile failed: " + " | ".join(head or lines[-4:])
 
 
-def _judge(parsed: dict, proof_contract: str) -> tuple[bool, str | None, str | None]:
-    """Return (every matching test passed, profit if logged, failure reason if any)."""
+def _judge(parsed: dict, proof_contract: str):
+    """Return (passed, profit, revert_reason, console_lines)."""
     passed = True
     saw_a_test = False
     profit: str | None = None
     reason: str | None = None
+    console: list[str] = []
     for suite_name, suite in parsed.items():
         if not isinstance(suite, dict):
             continue
@@ -153,8 +159,9 @@ def _judge(parsed: dict, proof_contract: str) -> tuple[bool, str | None, str | N
                 passed = False
                 reason = result.get("reason") or reason
             for line in result.get("decoded_logs", []) or []:
+                console.append(str(line))
                 if "profit=" in line:
                     profit = line.split("profit=", 1)[1].strip()
     if not saw_a_test:
-        return False, None, f"no test matching {proof_contract} ran"
-    return passed, profit, reason
+        return False, None, f"no test matching {proof_contract} ran", console
+    return passed, profit, reason, console

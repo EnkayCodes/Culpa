@@ -122,7 +122,7 @@ class Sleuth:
                            error=outcome.error)
             if outcome.exploit_landed or attempt == tries:
                 return draft
-            prior_snag = (outcome.error or "") + "\n" + outcome.logs[-3000:]
+            prior_snag = outcome.error or "the exploit did not land (no detail available)"
         return draft
 
     def _close(self, case, ledger, dossier, book) -> None:

