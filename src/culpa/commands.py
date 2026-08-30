@@ -135,6 +135,22 @@ def compare(
 
 
 @app.command()
+def report(
+    run: Path = typer.Argument(..., help="a findings run, e.g. findings/sleuth_quick.json"),
+    into: Path = typer.Option(Path("findings/audit.md")),
+) -> None:
+    """Turn a findings run into a signed audit note (Markdown)."""
+    from .auditnote import audit_markdown
+    from .proceedings import load_proceedings
+
+    md = audit_markdown(load_proceedings(run))
+    into.parent.mkdir(parents=True, exist_ok=True)
+    into.write_text(md)
+    console.print(md)
+    console.print(f"\nwritten to {into}")
+
+
+@app.command()
 def read(run: Path = typer.Argument(...), case: str = typer.Option(...)) -> None:
     """Read one case's findings as a plain note."""
     from .proceedings import load_proceedings

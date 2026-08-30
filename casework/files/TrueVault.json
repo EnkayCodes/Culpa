@@ -1,0 +1,15 @@
+{
+  "name": "TrueVault",
+  "origin": "custom",
+  "headline": "A sound vault: per-user accounting, checks-effects-interactions, checked return, two-step ownership",
+  "compiler_version": "0.8.20",
+  "subject_path": "contracts/TrueVault.sol",
+  "known_truth": {
+    "is_vulnerable": false,
+    "flaws": []
+  },
+  "expected_proof": {
+    "provable": false
+  },
+  "tags": ["sound", "control", "noise-check"]
+}

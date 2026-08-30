@@ -1,0 +1,27 @@
+{
+  "name": "GlassJaw",
+  "origin": "custom",
+  "headline": "A deposit vault with a public `demolish` that selfdestructs the balance to any address",
+  "compiler_version": "0.8.20",
+  "subject_path": "contracts/GlassJaw.sol",
+  "known_truth": {
+    "is_vulnerable": true,
+    "flaws": [
+      {
+        "category": "unprotected-selfdestruct",
+        "severity": "high",
+        "swc": "SWC-106",
+        "lines": [13, 14, 15],
+        "note": "demolish() has no caller check; anyone can selfdestruct the contract and send its whole balance to an address of their choosing"
+      }
+    ]
+  },
+  "expected_proof": {
+    "provable": true,
+    "mode": "local",
+    "min_profit_wei": "7000000000000000000",
+    "reference_proof": "proofs/GlassJaw.t.sol",
+    "notes": "An honest user deposits 8 ETH; an unrelated account calls demolish(attacker) and receives all of it."
+  },
+  "tags": ["unprotected-selfdestruct", "committed", "local", "easy"]
+}

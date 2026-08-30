@@ -1,0 +1,27 @@
+{
+  "name": "OriginGate",
+  "origin": "custom",
+  "headline": "A wallet that checks `tx.origin == owner`, so a phished owner's call drains it",
+  "compiler_version": "0.8.20",
+  "subject_path": "contracts/OriginGate.sol",
+  "known_truth": {
+    "is_vulnerable": true,
+    "flaws": [
+      {
+        "category": "tx-origin-auth",
+        "severity": "high",
+        "swc": "SWC-115",
+        "lines": [15, 16, 17],
+        "note": "withdraw() authorizes with tx.origin; an attacker contract called by the owner passes the check and can send the balance anywhere"
+      }
+    ]
+  },
+  "expected_proof": {
+    "provable": true,
+    "mode": "local",
+    "min_profit_wei": "9000000000000000000",
+    "reference_proof": "proofs/OriginGate.t.sol",
+    "notes": "Owner funds the wallet with 10 ETH, then is tricked into calling a malicious contract that calls withdraw(attacker, balance) — tx.origin is still the owner."
+  },
+  "tags": ["tx-origin-auth", "committed", "local", "easy"]
+}

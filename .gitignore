@@ -22,10 +22,19 @@ casework/contracts/*
 !casework/contracts/Irongate.sol
 !casework/contracts/LatchGate.sol
 !casework/contracts/HallOfMirrors.sol
+!casework/contracts/LooseLedger.sol
+!casework/contracts/OriginGate.sol
+!casework/contracts/GlassJaw.sol
+!casework/contracts/FlashFarm.sol
+!casework/contracts/TrueVault.sol
 casework/proofs/*
 !casework/proofs/HollowVault.t.sol
 !casework/proofs/OpenTill.t.sol
 !casework/proofs/HallOfMirrors.t.sol
+!casework/proofs/LooseLedger.t.sol
+!casework/proofs/OriginGate.t.sol
+!casework/proofs/GlassJaw.t.sol
+!casework/proofs/FlashFarm.t.sol
 
 # run output
 findings/*

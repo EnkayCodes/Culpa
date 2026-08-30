@@ -11,16 +11,23 @@ Each case is one JSON file in `files/`, checked against `schema.json`.
 
 ## Committed cases (run with no downloads)
 
-- `HollowVault` — reentrancy; vulnerable, local exploit, reference in `proofs/`.
-- `OpenTill` — access control; `drain()` is open to anyone. Vulnerable, local exploit.
-- `Irongate` — a sound vault (checks-effects-interactions + re-entry latch). Noise control.
-- `LatchGate` — a sound till (operator-only admin, two-step ownership). Noise control.
-- `HallOfMirrors` — **the hard one**: three contracts, a lending shop that values collateral at
-  a pool's spot price, taken with a flash loan. Self-contained, local exploit. The scanner
-  cannot see it — this is the case that separates the sleuth from the baseline.
-- `PendingCase` — a fork-case template; leave it out of scoring until it's filled in.
+Vulnerable, each with a reference exploit in `proofs/`:
 
-Case groups live in `config/preferences.yaml`: `quick`, `easy`, `sound`, `hard`, `committed`,
+| Case | Flaw kind | Scanner sees it? |
+|---|---|---|
+| `HollowVault` | reentrancy | yes |
+| `OpenTill` | access-control | partly |
+| `LooseLedger` | arithmetic (unchecked underflow) | no |
+| `OriginGate` | tx-origin-auth | yes |
+| `GlassJaw` | unprotected-selfdestruct | yes |
+| `HallOfMirrors` | price-oracle-manipulation (flash loan, 3 contracts) | **no** |
+| `FlashFarm` | logic-error (instantaneous-share reward skim) | **no** |
+
+Sound (noise controls, `is_vulnerable: false`): `Irongate`, `LatchGate`, `TrueVault`.
+
+`PendingCase` — a fork-case template; left out of scoring until filled in.
+
+Case groups live in `config/preferences.yaml`: `quick`, `easy`, `hard`, `sound`, `committed`,
 and `full` (every file in `files/`).
 
 ## Keeping the known truth honest (rubric: reproducibility, integrity)

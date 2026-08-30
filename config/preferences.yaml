@@ -23,10 +23,11 @@ casework:
 
 groups:
   quick: [HollowVault, OpenTill, Irongate]
-  easy: [HollowVault, OpenTill]
-  sound: [Irongate, LatchGate]
-  hard: [HallOfMirrors]
-  committed: [HollowVault, OpenTill, Irongate, LatchGate, HallOfMirrors]
+  easy: [HollowVault, OpenTill, LooseLedger, OriginGate, GlassJaw]
+  hard: [HallOfMirrors, FlashFarm]
+  sound: [Irongate, LatchGate, TrueVault]
+  committed: [HollowVault, OpenTill, LooseLedger, OriginGate, GlassJaw,
+              HallOfMirrors, FlashFarm, Irongate, LatchGate, TrueVault]
 
 # kinds of flaw where the scanner is essentially blind — reported on their own line
 weak_spot_kinds: [price-oracle-manipulation, flash-loan-attack, logic-error, bad-accounting]

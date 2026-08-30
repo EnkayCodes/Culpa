@@ -1,0 +1,27 @@
+{
+  "name": "LooseLedger",
+  "origin": "custom",
+  "headline": "A prepaid ledger that burns points inside `unchecked`, so overspending underflows to a giant balance",
+  "compiler_version": "0.8.20",
+  "subject_path": "contracts/LooseLedger.sol",
+  "known_truth": {
+    "is_vulnerable": true,
+    "flaws": [
+      {
+        "category": "arithmetic",
+        "severity": "high",
+        "swc": "SWC-101",
+        "lines": [16, 17, 18],
+        "note": "spend() decrements points[msg.sender] in an unchecked block with no balance check; amount > balance underflows and the contract still pays out"
+      }
+    ]
+  },
+  "expected_proof": {
+    "provable": true,
+    "mode": "local",
+    "min_profit_wei": "4000000000000000000",
+    "reference_proof": "proofs/LooseLedger.t.sol",
+    "notes": "Honest user tops up 5 ETH; attacker tops up 1 ETH then spends 6 ETH — the burn underflows and the contract pays out its whole balance."
+  },
+  "tags": ["arithmetic", "committed", "local", "easy"]
+}

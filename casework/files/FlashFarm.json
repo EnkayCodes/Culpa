@@ -1,0 +1,30 @@
+{
+  "name": "FlashFarm",
+  "origin": "custom",
+  "headline": "A reward farm that pays by instantaneous stake share — stake big for one block, skim the pool, unstake",
+  "compiler_version": "0.8.20",
+  "subject_path": "contracts/FlashFarm.sol",
+  "subjects": [
+    { "name": "FlashFarm", "path": "contracts/FlashFarm.sol" },
+    { "name": "Token", "path": "contracts/FlashFarm.sol" }
+  ],
+  "known_truth": {
+    "is_vulnerable": true,
+    "flaws": [
+      {
+        "category": "logic-error",
+        "severity": "high",
+        "lines": [74, 75, 76],
+        "note": "claim() pays rewardPool * staked[msg.sender] / totalStaked with no time-weighting; a one-block whale stake captures the pool that honest stakers earned. Slither cannot see this."
+      }
+    ]
+  },
+  "expected_proof": {
+    "provable": true,
+    "mode": "local",
+    "min_profit_wei": "500000000000000000000",
+    "reference_proof": "proofs/FlashFarm.t.sol",
+    "notes": "Honest staker holds the whole pool; a whale stakes ~99% for one transaction, claims ~99% of the reward pool, and unstakes, having committed nothing."
+  },
+  "tags": ["logic-error", "economic", "scanner-blind", "committed", "local", "multi-contract"]
+}
