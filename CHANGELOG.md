@@ -47,10 +47,16 @@ Full table in `submission/comparison.md`.
 | Cost per contract | $0.00 | ~$0.0001 | ~$0.0002 | — |
 | Time per contract | ~0.7 s | ~2.7 s | ~9 s | — |
 
-The one variable case is `HallOfMirrors` (3 contracts, flash-loan oracle manipulation): the
-model always identifies it correctly, and lands the exploit given 4 proof attempts; at 2–3
-attempts it sometimes runs out of retries. Every other vulnerable case lands on attempt 1–2.
-Slither and the one-shot baseline prove **zero** of the seven, in every run.
+### On variance
+
+The model is run at temperature 0, but the free tier is still nondeterministic. Across repeated
+`committed` runs on `gemini-3.5-flash-lite` the sleuth **identifies every flaw correctly every
+time** (leads are stable); the proven-exploit count ranges 5–7 of 7 as the harder value-flow
+exploits (`HallOfMirrors`, `OriginGate`) land on some runs and exhaust their retries on others.
+`gemini-3.5-flash` is stronger at Solidity but its free-tier request cap is too low for a
+10-case run — it rate-limited and left 3 cases unfinished. So flash-lite is the reported model.
+
+Slither and the one-shot baseline prove **zero** of the seven in every run.
 
 ## The main way it goes wrong
 
