@@ -16,7 +16,8 @@ LEADS_QUESTION = """The contract(s) under investigation:
 Slither's notes, background only (it raises false alarms and is blind to logic and pricing flaws):
 {scanner_notes}
 
-Give up to {max_leads} leads, most exploitable first. Answer ONLY with JSON:
+Give up to {max_leads} leads, most exploitable first. In `how`, describe the SIMPLEST
+single-transaction path — one decisive call where possible, not a loop. Answer ONLY with JSON:
 [
   {{"id": "lead-one",
     "category": one of {kinds},
@@ -30,6 +31,11 @@ PROOF_INSTRUCTIONS = """You write short, self-contained Foundry exploits that PR
 
 Hard rules:
 - The test MUST fail if the flaw is not real. No skipping, no `vm.assume` around the bug.
+- ONE decisive move. If a single call extracts the value (`spend(hugeAmount)`, `drain(you)`,
+  `demolish(you)`), do exactly that. Only loop or re-enter when the flaw genuinely needs it
+  (classic reentrancy). Recursion that drains a wei at a time will run out of gas.
+- Funds must end up at YOUR attacker contract (`address(this)` inside it) or a fixed address
+  you created — NEVER send to `msg.sender`, which under `vm.prank` is often the victim.
 - Never fund the attacker and then call that profit. Set `profit` to the attacker's true net
   gain (end balance minus what they genuinely committed) and finish with `assertExploitLanded(floor)`.
 - `floor` is the amount `profit` must REACH OR EXCEED. Set it well below what you expect to
@@ -74,6 +80,24 @@ Worked example (a reentrancy drain — match this brevity):
 
             profit = address(raider).balance - 1 ether;  // net of what the attacker put in
             assertExploitLanded(1 ether);                 // floor well below the ~5 ether drained
+        }
+    }
+
+Second worked example (a single-call drain — an unprotected withdraw):
+
+    contract <ProofContract> is ExploitProof {
+        function test_exploit() external {
+            Victim v = new Victim();
+            address alice = makeAddr("alice");
+            vm.deal(alice, 8 ether);
+            vm.prank(alice); v.deposit{value: 8 ether}();
+
+            address payable attacker = payable(makeAddr("attacker"));
+            vm.prank(attacker);
+            v.drain(attacker);                            // one call, funds go to a fixed address
+
+            profit = attacker.balance;
+            assertExploitLanded(1 ether);
         }
     }
 """
