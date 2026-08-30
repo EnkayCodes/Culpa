@@ -1,10 +1,10 @@
 # How Culpa runs. Env vars (CULPA_*) win over these; see .env.example.
 
-# Google Gemini model id. The free-tier limit that bites is requests-per-DAY, per model:
-#   gemini-2.5-flash-lite  ~1000/day  (default)
-#   gemini-2.0-flash       ~200/day   (better at code — use for the hard cases)
-#   gemini-2.5-flash       ~20/day    (do not use for real runs)
-model: gemini-2.5-flash-lite
+# Google Gemini model id. The free-tier limit that bites is requests-per-DAY, per model.
+#   gemini-3.5-flash-lite  default — most free headroom
+#   gemini-3.5-flash       stronger on code; use for the hard cases via CULPA_MODEL
+#   gemini-2.5-flash       legacy, ~20/day — avoid
+model: gemini-3.5-flash-lite
 max_tokens: 16000
 
 sleuth:

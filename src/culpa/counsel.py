@@ -3,10 +3,10 @@
 Get a key at https://aistudio.google.com/apikey (no card needed) and put it in .env as
 GEMINI_API_KEY.
 
-The real free-tier constraint is requests-per-DAY, and it is per-model. As of writing:
-  gemini-2.5-flash        ~20/day   (do not use for real runs)
-  gemini-2.0-flash        ~200/day
-  gemini-2.5-flash-lite   ~1000/day (default — most headroom)
+The real free-tier constraint is requests-per-DAY, and it is per-model.
+  gemini-3.5-flash-lite   default — most headroom
+  gemini-3.5-flash        stronger on code — use for the hard cases
+  gemini-2.5-flash        legacy, ~20/day — avoid
 Check https://ai.google.dev/gemini-api/docs/rate-limits for current numbers.
 
 Each consultation is a single question with a single answer: no tools.
@@ -23,10 +23,10 @@ from .preferences import preferences
 
 # Notional per-million-token prices, for the write-up only. The free tier bills nothing.
 _NOTIONAL_PER_MTOK: dict[str, tuple[float, float]] = {
+    "gemini-3.5-flash": (0.30, 2.50),
+    "gemini-3.5-flash-lite": (0.10, 0.40),
+    "gemini-3.5-pro": (1.25, 10.0),
     "gemini-2.5-flash": (0.30, 2.50),
-    "gemini-2.5-flash-lite": (0.10, 0.40),
-    "gemini-2.5-pro": (1.25, 10.0),
-    "gemini-2.0-flash": (0.10, 0.40),
 }
 
 _MAX_429_RETRIES = 4
@@ -72,6 +72,12 @@ def _retry_after_seconds(err: Exception) -> float | None:
     return float(m.group(1)) if m else None
 
 
+def _recommended_model(err: Exception) -> str | None:
+    """A deprecated-model 404 tells you what to switch to — follow the breadcrumb."""
+    m = re.search(r"use\s+(?:models/)?(gemini[\w.\-]+)", str(err), re.I)
+    return m.group(1) if m else None
+
+
 def ask(instructions: str, question: str, *, model: str | None = None,
         max_tokens: int | None = None, temperature: float = 0.0) -> Reply:
     """Ask the model one question, backing off on 429 rate limits."""
@@ -93,13 +99,22 @@ def ask(instructions: str, question: str, *, model: str | None = None,
     )
 
     last_err: Exception | None = None
+    swapped_model = False
     for attempt in range(_MAX_429_RETRIES):
         try:
             resp = client.models.generate_content(model=model, contents=question, config=config)
             break
         except genai_errors.ClientError as e:  # noqa: PERF203
             last_err = e
-            if getattr(e, "code", None) != 429 or attempt == _MAX_429_RETRIES - 1:
+            code = getattr(e, "code", None)
+            if code == 404 and not swapped_model:
+                alt = _recommended_model(e)
+                if alt and alt != model:
+                    model = alt
+                    swapped_model = True
+                    continue
+                raise
+            if code != 429 or attempt == _MAX_429_RETRIES - 1:
                 raise
             wait = _retry_after_seconds(e) or 8 * (attempt + 1)
             time.sleep(min(wait + 1, 65))
