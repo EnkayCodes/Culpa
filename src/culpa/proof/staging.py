@@ -26,17 +26,23 @@ def _proofground() -> Path:
     return Path(preferences()["proof"]["proofground"])
 
 
+def clear_stage() -> None:
+    """Remove every staged exploit. forge compiles the whole test dir, so a broken leftover
+    from an earlier attempt would poison every later compile."""
+    staged = _proofground() / STAGED
+    if staged.is_dir():
+        for f in staged.glob("*.t.sol"):
+            f.unlink(missing_ok=True)
+
+
 def lay_out(draft: ExploitDraft) -> Path:
     ground = _proofground()
-    out = ground / STAGED / f"{draft.proof_contract}.t.sol"
-    out.parent.mkdir(parents=True, exist_ok=True)
+    staged = ground / STAGED
+    staged.mkdir(parents=True, exist_ok=True)
+    clear_stage()
+    out = staged / f"{draft.proof_contract}.t.sol"
     out.write_text(draft.source)
     return out
-
-
-def clear(draft: ExploitDraft) -> None:
-    out = _proofground() / STAGED / f"{draft.proof_contract}.t.sol"
-    out.unlink(missing_ok=True)
 
 
 def stage(draft: ExploitDraft, timeout_s: int | None = None) -> ProofOutcome:
