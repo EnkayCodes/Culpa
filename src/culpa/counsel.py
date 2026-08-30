@@ -90,19 +90,26 @@ def ask(instructions: str, question: str, *, model: str | None = None,
     max_tokens = max_tokens or prefs["max_tokens"]
     client = genai.Client(api_key=_key())
 
-    config = types.GenerateContentConfig(
-        system_instruction=instructions,
-        temperature=temperature,
-        max_output_tokens=max_tokens,
-        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
-        thinking_config=types.ThinkingConfig(thinking_budget=0),
-    )
+    def _config(minimal: bool):
+        if minimal:
+            return types.GenerateContentConfig(
+                system_instruction=instructions, max_output_tokens=max_tokens,
+            )
+        return types.GenerateContentConfig(
+            system_instruction=instructions,
+            temperature=temperature,
+            max_output_tokens=max_tokens,
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+        )
 
     last_err: Exception | None = None
     swapped_model = False
-    for attempt in range(_MAX_429_RETRIES):
+    minimal = False
+    for attempt in range(_MAX_429_RETRIES + 1):
         try:
-            resp = client.models.generate_content(model=model, contents=question, config=config)
+            resp = client.models.generate_content(
+                model=model, contents=question, config=_config(minimal)
+            )
             break
         except genai_errors.ClientError as e:  # noqa: PERF203
             last_err = e
@@ -110,11 +117,13 @@ def ask(instructions: str, question: str, *, model: str | None = None,
             if code == 404 and not swapped_model:
                 alt = _recommended_model(e)
                 if alt and alt != model:
-                    model = alt
-                    swapped_model = True
+                    model, swapped_model = alt, True
                     continue
                 raise
-            if code != 429 or attempt == _MAX_429_RETRIES - 1:
+            if code == 400 and not minimal:
+                minimal = True  # drop optional config knobs and try once more
+                continue
+            if code != 429 or attempt >= _MAX_429_RETRIES:
                 raise
             wait = _retry_after_seconds(e) or 8 * (attempt + 1)
             time.sleep(min(wait + 1, 65))

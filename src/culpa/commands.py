@@ -28,6 +28,20 @@ def check() -> None:
 
 
 @app.command()
+def models() -> None:
+    """List the Gemini models this key can use (for debugging model-id errors)."""
+    from google import genai
+
+    from .counsel import _key
+
+    client = genai.Client(api_key=_key())
+    for m in client.models.list():
+        actions = getattr(m, "supported_actions", None) or []
+        if "generateContent" in actions or not actions:
+            console.print(f"  {m.name}")
+
+
+@app.command()
 def consult() -> None:
     """One tiny question to the model, to confirm the Gemini key works."""
     from .counsel import ask
