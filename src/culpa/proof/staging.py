@@ -142,9 +142,11 @@ def _read_forge_json(stdout: str) -> dict | None:
 
 
 def _compile_error(stderr: str) -> str:
-    lines = [ln for ln in stderr.splitlines() if ln.strip()]
-    head = [ln for ln in lines if ln.startswith("error[") or "Error" in ln][:4]
-    return "compile failed: " + " | ".join(head or lines[-4:])
+    # Keep the message, the --> location, and the offending source line so the model can fix it.
+    lines = [ln.rstrip() for ln in stderr.splitlines()]
+    start = next((i for i, ln in enumerate(lines) if "Error" in ln or ln.startswith("error[")), 0)
+    chunk = [ln for ln in lines[start:start + 12] if ln.strip()][:10]
+    return "compile failed:\n" + "\n".join(chunk)
 
 
 def _judge(parsed: dict, proof_contract: str):

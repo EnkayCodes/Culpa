@@ -40,6 +40,10 @@ Hard rules:
   `profit`, assert. Every extra line is a chance to introduce a compile error.
 - Deploy the victim yourself for local cases; for fork cases use `vm.createSelectFork` and the
   real addresses from the lead.
+- Import EVERY name you use from the subject file: `import {A, B, C} from "@contracts/File.sol";`.
+  If you need a callback interface (e.g. a flash-loan receiver), do NOT write `is SomeInterface`
+  unless you imported it — just declare a plain `function onFlashLoan(uint256 amount, bytes calldata) external`
+  on your attacker contract; the selector match is enough.
 - One file. Solidity ^0.8.20. Exactly one external function `test_exploit`.
 
 Worked example (a reentrancy drain — match this brevity):
