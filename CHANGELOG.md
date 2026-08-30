@@ -54,8 +54,8 @@ correctly, and it landed in other runs (see the variance note above).
 
 The model is run at temperature 0, but the free tier is still nondeterministic. Across repeated
 `committed` runs on `gemini-3.5-flash-lite` the sleuth **identifies every flaw correctly every
-time** (leads are stable); the proven-exploit count ranges 5–7 of 7 as the harder value-flow
-exploits (`HallOfMirrors`, `OriginGate`) land on some runs and exhaust their retries on others.
+time** (leads are stable); the proven-exploit count ranges 5–7 of 7 as `OriginGate` and
+`HallOfMirrors` land on some runs and not others. The frozen submission run is 6/7.
 `gemini-3.5-flash` is stronger at Solidity but its free-tier request cap is too low for a
 10-case run — it rate-limited and left 3 cases unfinished. So flash-lite is the reported model.
 
@@ -64,10 +64,21 @@ Slither and the one-shot baseline prove **zero** of the seven in every run.
 ## The main way it goes wrong
 
 The model's **leads were correct on every case** — it named the right flaw kind and the right
-attack the first time. Every failure was in the **exploit**: a strict-comparison off-by-one, a
-missing import, a recursion that can't scale, funds routed to the wrong address. These are
-shallow, mechanical mistakes — and every one of them was caught because the exploit is *run*,
-not just asserted, and fixed in one retry from the compiler / revert message.
+attack the first time. Every failure was in the **exploit**, and they fall on a spectrum:
+
+- *Shallow and self-correcting* — a strict-comparison off-by-one, a missing import, a recursion
+  that can't scale, funds routed to `msg.sender`. Caught from the compiler / revert message and
+  fixed in one retry.
+- *Deep and persistent* — `HallOfMirrors`, the 3-contract flash-loan case, fails all 6 attempts
+  the same way: the exploit is **structurally correct** (flash-borrow → swap to pump the spot
+  price → pledge → draw against the inflated value → unwind → repay) but the **amounts are
+  wrong** — it borrows the lender's entire balance into a pool a fraction of that size, and the
+  oversized swap can't be unwound to repay the loan (`revert: balance`). Getting the call
+  sequence right is a reasoning task the model does easily; tuning the numbers so a
+  constant-product round-trip nets out is a search problem it does not.
+
+Either way, the harness is what tells you which findings are real: 6 of the 7 come with an
+exploit that ran, and the 7th is explicitly a lead, not a finding.
 
 ## Hot take
 
