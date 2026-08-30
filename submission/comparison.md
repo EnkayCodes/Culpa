@@ -14,7 +14,7 @@
 | Noise on sound contracts | 1.00 | 0.00 | -1.00 (better) |
 | Unbacked exploit claims | 0 | 0 | |
 | Cost per contract | $0.000 | $0.000 | +0.00 (worse) |
-| Time per contract (s) | 0.7 | 13.2 | +12.56 (worse) |
+| Time per contract (s) | 0.7 | 12.8 | +12.13 (worse) |
 | Cases that errored | 0 | 0 | |
 
 ## F1 by flaw kind
