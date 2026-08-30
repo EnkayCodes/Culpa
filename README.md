@@ -6,6 +6,19 @@ Slither scan.
 
 Built for the **micro1 Frontier / Agentic Workflows Hackathon** (Aug 28–31, 2026).
 
+## Results
+
+On 10 contracts (7 vulnerable across 7 flaw kinds, 3 sound), free-tier `gemini-3.5-flash-lite`,
+~$0.002 for the whole run:
+
+| | Slither | one-shot LLM | **Culpa's sleuth** |
+|---|---|---|---|
+| Exploits proven with a runnable PoC | **0 / 7** | 0 / 7 | **6–7 / 7** |
+| Flaw-kind F1 | 0.30 | 0.71 | **1.00** |
+| False-flags on sound contracts | **3 / 3** | 0 / 3 | **0 / 3** |
+
+Frozen run + trajectories: [`submission/`](submission/).
+
 ---
 
 ## The idea in one paragraph

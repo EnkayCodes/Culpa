@@ -6,8 +6,9 @@ __pycache__/
 build/
 dist/
 
-# env / secrets
-.env
+# env / secrets — everything .env* except the template
+.env*
+!.env.example
 
 # foundry
 proofground/out/

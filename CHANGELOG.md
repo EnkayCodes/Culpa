@@ -34,15 +34,23 @@ executable on-chain exploit. Every row links to evidence in `findings/`.
 
 ## Scanner against sleuth
 
+Measured on the `committed` set — 10 contracts, 7 vulnerable across 7 flaw kinds, 3 sound.
+Full table in `submission/comparison.md`.
+
 | Measure | Slither | first glance | Sleuth | Δ (Slither → Sleuth) |
 |---|---|---|---|---|
-| Proven-exploit rate | 0 / 7 | 0 / 7 | **7 / 7** | **+1.00** |
-| Flaw-kind micro-F1 | 0.30 | 0.93 | **1.00** | +0.70 |
-| Noise on sound contracts | 1.00 | 0.00 | **0.00** | −1.00 |
-| Cost per contract | $0.00 | ~$0.0002 | ~$0.001 | — |
-| Time per contract | ~1 s | ~1 s | ~15 s | — |
+| Proven-exploit rate | 0 / 7 | 0 / 7 | **6–7 / 7** | +0.86–1.00 |
+| Flaw-kind micro-F1 | 0.30 | 0.71 | **1.00** | +0.70 |
+| Flaw-kind macro-F1 | 0.35 | — | **1.00** | +0.65 |
+| Noise on sound contracts | 1.00 (3/3) | 0.00 | **0.00** | −1.00 |
+| Unbacked exploit claims | 0 | 0 | **0** | — |
+| Cost per contract | $0.00 | ~$0.0001 | ~$0.0002 | — |
+| Time per contract | ~0.7 s | ~2.7 s | ~9 s | — |
 
-(Numbers are the `committed` set — fill exact values from `findings/comparison.md`.)
+The one variable case is `HallOfMirrors` (3 contracts, flash-loan oracle manipulation): the
+model always identifies it correctly, and lands the exploit given 4 proof attempts; at 2–3
+attempts it sometimes runs out of retries. Every other vulnerable case lands on attempt 1–2.
+Slither and the one-shot baseline prove **zero** of the seven, in every run.
 
 ## The main way it goes wrong
 
