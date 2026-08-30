@@ -55,14 +55,13 @@ def stage(draft: ExploitDraft, timeout_s: int | None = None) -> ProofOutcome:
         outcome.error = f"could not write the exploit file: {e}"
         return outcome
 
-    casework_dir = ground.parent / "casework"
+    # Reading ../casework/contracts is whitelisted via allow_paths in proofground/foundry.toml.
     cmd = [
         "forge", "test",
         "--root", str(ground),
         "--match-contract", draft.proof_contract,
         "--json", "-vvv",
         "--fuzz-seed", str(prefs["proof"].get("fuzz_seed", 0)),
-        "--allow-paths", str(casework_dir),
     ]
     env = os.environ.copy()
     if draft.mode == "fork":

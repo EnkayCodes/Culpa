@@ -31,7 +31,7 @@ verify:
 
 prove-hallofmirrors:
 	cp casework/proofs/HallOfMirrors.t.sol proofground/test/staged/ProveHallOfMirrors.t.sol
-	forge test --root proofground --match-contract ProveHallOfMirrors -vvv --allow-paths "$(PWD)/casework"
+	forge test --root proofground --match-contract ProveHallOfMirrors -vvv
 
 test:
 	pytest -q

@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 // Reference exploit for OpenTill. An unrelated account calls drain() and sweeps the till.
 // Run by hand:
-//   forge test --root proofground --match-contract ProveOpenTill -vvv --allow-paths "$(pwd)/casework"
+//   forge test --root proofground --match-contract ProveOpenTill -vvv
 
 import {ExploitProof} from "@proof/ExploitProof.sol";
 import {OpenTill} from "@contracts/OpenTill.sol";

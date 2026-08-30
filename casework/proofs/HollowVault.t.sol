@@ -2,9 +2,7 @@
 pragma solidity ^0.8.20;
 
 // Reference exploit for HollowVault. The sleuth must produce something equivalent.
-// Run by hand:
-//   forge test --root proofground --match-contract ProveHollowVault -vvv \
-//     --allow-paths "$(pwd)/casework"
+// Run by hand:  forge test --root proofground --match-contract ProveHollowVault -vvv
 
 import {ExploitProof} from "@proof/ExploitProof.sol";
 import {HollowVault} from "@contracts/HollowVault.sol";

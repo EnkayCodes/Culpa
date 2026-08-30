@@ -5,9 +5,7 @@ pragma solidity ^0.8.20;
 // price up, borrow against a tiny honest pledge at the inflated value, unwind the swap, repay
 // the flash loan, keep the drawn cash.
 //
-// Run by hand:
-//   forge test --root proofground --match-contract ProveHallOfMirrors -vvv \
-//     --allow-paths "$(pwd)/casework"
+// Run by hand:  forge test --root proofground --match-contract ProveHallOfMirrors -vvv
 
 import {ExploitProof} from "@proof/ExploitProof.sol";
 import {Coin, MirrorPool, QuickLoan, PawnShop} from "@contracts/HallOfMirrors.sol";

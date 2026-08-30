@@ -95,7 +95,7 @@ set) and let it pace itself if you hit a 429.
 move the sleuth made. `proofground/test/staged/` — the exploits it wrote; re-run any:
 
 ```bash
-forge test --root proofground --match-contract ProveOpenTill -vvv --allow-paths "$(pwd)/casework"
+forge test --root proofground --match-contract ProveOpenTill -vvv
 ```
 
 ## 7. On determinism
