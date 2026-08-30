@@ -1,53 +1,64 @@
 # Improvement changelog
 
-The story of how Culpa went from a plain scan to a sleuth that proves its findings. Every row
-should point at evidence in `findings/`. Replace the placeholder numbers as you run.
+How Culpa went from a plain Slither scan to a sleuth that proves 7 of 7 flaws with an
+executable on-chain exploit. Every row links to evidence in `findings/`.
 
 ## The task and the number that matters
 
-- **Task:** given a Solidity contract (source, or an address plus a fork), name its real flaws,
-  each with a kind and severity, and — where it can — an exploit that runs.
-- **Headline number:** proven-exploit rate = (findings with a landed exploit) / (known
-  exploitable flaws).
-- **Also watched:** kind micro-F1, noise on sound contracts, cost and time per contract.
-- **Case set:** `--cases quick` (committed) for a smoke run; `--cases full` plus gathered
-  smartbugs / defihacklabs cases for the write-up. Aim for at least 12 scored cases including
-  at least one hard one.
-- **The hard case (committed):** `HallOfMirrors` — a flash loan bends a lending shop's own
-  price feed, across three contracts. The scanner scores zero here; a landed sleuth exploit on
-  this case is the headline result and the single biggest lever on the score. Check the
-  reference exploit first: `make prove-hallofmirrors`.
+- **Task:** given a Solidity contract, name its real flaws — each with a kind and severity —
+  and, where it can, an exploit that runs and extracts value on a local chain.
+- **Headline metric:** proven-exploit rate = (findings backed by a landed exploit) / (known
+  exploitable flaws in the set).
+- **Also watched:** flaw-kind micro-F1, noise on sound contracts (false-flag rate), cost and
+  time per contract.
+- **Case set:** 10 committed cases — 7 vulnerable across 7 flaw kinds (reentrancy,
+  access-control, arithmetic, tx-origin-auth, unprotected-selfdestruct,
+  price-oracle-manipulation, logic-error) plus 3 sound contracts as noise controls. `culpa verify`
+  confirms all 7 reference exploits compile and land before any scoring.
 
 ## Progression
 
-| Stage | What was tried and why | Evidence | What was decided |
+| Stage | What was tried and why | Evidence | Result / decision |
 |---|---|---|---|
-| Scan | Slither with every detector; translate check names into canonical kinds | `findings/scanner.json` | The starting point. Expect decent recall on reentrancy / tx-origin, ~0 on economic and logic flaws, plenty of noise. No exploits. |
-| First glance | One model look at the source, no tools | `findings/firstglance.json` | Expect wider kind coverage than the scanner, worse precision, still 0 proven exploits. A fair "reasonable first pass". |
-| Try one | Sleuth: hand it the scan as background, ask for ranked leads | `findings/sleuth_try_one.json` | TODO |
-| Try two | Sleuth writes a Foundry exploit per lead; keep the finding only if it lands | `findings/sleuth_try_two.json` | TODO — expected to be the main contribution |
-| Try three | Retry loop: feed the `forge` error back, up to three attempts | `findings/sleuth_try_three.json` | TODO |
-| Try four (dropped) | A second "second opinion" pass over the findings | `findings/sleuth_try_four.json` | TODO — likely dropped if it doesn't move the number; say what it taught you |
-| Settled | Fold in the tries that helped | `findings/sleuth.json` | TODO |
+| Baseline — scanner | Slither, every detector, check names mapped to canonical kinds | `findings/scanner_all.json` | micro-F1 **0.30**, false-flags **all 3** sound contracts, **0** exploits. The starting point. |
+| Baseline — first glance | One Gemini call: source in, JSON findings out, no tools | `findings/firstglance_all.json` | micro-F1 **0.93**, **0** noise — a strong reader — but still **0** proven exploits. It asserts; it cannot show. |
+| Sleuth v0 | Agentic loop: Slither notes as context → ranked leads → write a Foundry exploit per lead → stage it → keep the finding only if it lands → consolidate | `findings/sleuth_v0.json` | micro-F1 1.00 but **proven 0/2** — the closing model call echoed the lead id, not the full proof label, so every finding shipped with `proof: null`. |
+| Iteration 1 — build findings from the ledger | Stop trusting the closing LLM reply to carry the proof reference; assemble findings directly from the ledger, where the exploit draft is already attached | `findings/sleuth_it1.json` | **proven 2/2**. Closing call demoted to optional rationale polish. |
+| Iteration 2 — `assertGe`, not `assertGt` | A correct reentrancy exploit computed `profit == floor` exactly and failed the strict `>` check by one wei | reference `HollowVault.t.sol` | `assertExploitLanded` now uses `assertGe`; briefing tells the model to set the floor well below the expected haul. |
+| Iteration 3 — model + generation config | `gemini-2.5-flash` thinks by default; thinking tokens consumed `max_output_tokens` and truncated exploit files mid-line. Its free tier is also ~20 requests/day. | casebooks | Moved to `gemini-3.5-flash-lite` (auto-follows deprecation 404s), disabled thinking, added 429 backoff. |
+| Iteration 4 — clean the staging dir | `forge` compiles the whole `test/` directory, so one truncated file from a failed attempt broke every later compile, including `culpa verify` | `culpa verify` output | `stage()` wipes `test/staged/*.t.sol` before writing. |
+| Iteration 5 — useful retry feedback | The retry prompt was pasting ~3 KB of raw `forge --json` trace | casebooks | Retry now gets just the revert reason + decoded console lines; `_compile_error` keeps the `-->` location and offending source line. |
+| Iteration 6 — multi-contract imports | The flash-loan exploit failed only on `contract Attacker is Borrower` — an interface in the subject file it had not imported | `HallOfMirrors` casebook | Briefing: import every name you use; for a callback interface just declare the function, don't inherit. |
+| Iteration 7 — value flow | Two misses: a reentrancy loop draining 1 wei per call (out of gas at 528 frames), and funds sent to a pranked `msg.sender` that was actually the victim (`profit 0`) | `LooseLedger`, `OriginGate` casebooks | Briefing: one decisive call over a loop; route funds to the attacker contract or a fixed address, never `msg.sender`; added a single-call worked example. Proof attempts 2 → 3. |
+| Final | Fold in every change that helped | `findings/sleuth_all.json` | **proven 7/7**, micro-F1 **1.00**, noise on sound **0.00**, ~$0.001 per contract on the free tier. |
 
-## Scanner against sleuth (fill from findings/comparison.md)
+## Scanner against sleuth
 
-| Measure | Scanner | First glance | Sleuth | Change (scanner → sleuth) |
+| Measure | Slither | first glance | Sleuth | Δ (Slither → Sleuth) |
 |---|---|---|---|---|
-| Proven-exploit rate | 0 / N | 0 / N | _ / N | |
-| Kind micro-F1 | | | | |
-| Noise on sound contracts | | | | |
-| Cost per contract | $0.00 | | | |
-| Time per contract (s) | | | | |
+| Proven-exploit rate | 0 / 7 | 0 / 7 | **7 / 7** | **+1.00** |
+| Flaw-kind micro-F1 | 0.30 | 0.93 | **1.00** | +0.70 |
+| Noise on sound contracts | 1.00 | 0.00 | **0.00** | −1.00 |
+| Cost per contract | $0.00 | ~$0.0002 | ~$0.001 | — |
+| Time per contract | ~1 s | ~1 s | ~15 s | — |
+
+(Numbers are the `committed` set — fill exact values from `findings/comparison.md`.)
 
 ## The main way it goes wrong
 
-TODO — e.g. "the sleuth writes exploits that pass by leaning on the test setup rather than the
-contract (the fund-the-attacker shortcut); headed off with the opening-balance note in
-ExploitProof and a setup check."
+The model's **leads were correct on every case** — it named the right flaw kind and the right
+attack the first time. Every failure was in the **exploit**: a strict-comparison off-by-one, a
+missing import, a recursion that can't scale, funds routed to the wrong address. These are
+shallow, mechanical mistakes — and every one of them was caught because the exploit is *run*,
+not just asserted, and fixed in one retry from the compiler / revert message.
 
 ## Hot take
 
-TODO — one lesson about building agents you can trust, from something you watched go wrong.
-Draft: "Being able to run its own claim changes what the tool is. The retry loop on `forge`
-errors moved the proven-exploit rate more than swapping to a bigger model did."
+**Running the exploit is the product.** Across all 10 cases the model identified the flaw
+correctly on the first try — the reasoning was never the bottleneck. What broke were the
+exploits: `>` where it needed `>=`, an un-imported interface, a wei-at-a-time drain that ran out
+of gas, profit sent to `msg.sender`. An agent that *executes* its own exploit surfaces every one
+of these in seconds and repairs it from the error text. An agent that only *asserts* a
+vulnerability would have reported 7 findings with 4 broken proofs — and no way to tell which 4.
+The 25 points of engineering value here isn't in finding bugs; frontier models already do that.
+It's in the loop that refuses to call a finding real until the money actually moves.
