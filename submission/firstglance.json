@@ -1,0 +1,446 @@
+{
+  "investigator": "first-glance",
+  "who": "first-glance",
+  "selection": "committed",
+  "model": "gemini-3.5-flash-lite",
+  "cases": 10,
+  "wall_seconds": 27.1,
+  "tally": {
+    "cases": 10,
+    "vulnerable": 7,
+    "sound": 3,
+    "hits": 5,
+    "noise": 2,
+    "misses": 2,
+    "micro_precision": 0.7142857142857143,
+    "micro_recall": 0.7142857142857143,
+    "micro_f1": 0.7142857142857143,
+    "macro_precision": 0.5625,
+    "macro_recall": 0.625,
+    "macro_f1": 0.5833333333333334,
+    "noise_on_sound_rate": 0.0,
+    "proofs_expected": 7,
+    "proofs_landed": 0,
+    "landed_rate": 0.0,
+    "unbacked_claims": 0,
+    "errored": 0,
+    "total_cost_usd": 0.0009526000000000002,
+    "cost_per_case": 9.526000000000002e-05,
+    "total_duration_s": 27.090564250946045,
+    "duration_per_case": 2.7090564250946043,
+    "by_kind": {
+      "access-control": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "arithmetic": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 1
+      },
+      "flash-loan-attack": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      },
+      "logic-error": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 1
+      },
+      "price-oracle-manipulation": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "reentrancy": {
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6666666666666666,
+        "support": 1
+      },
+      "tx-origin-auth": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "unprotected-selfdestruct": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      }
+    }
+  },
+  "records": [
+    {
+      "case": "FlashFarm",
+      "dossier": {
+        "case_name": "FlashFarm",
+        "findings": [
+          {
+            "category": "flash-loan-attack",
+            "severity": "high",
+            "confidence": 0.5,
+            "title": "Instantaneous Stake Reward Drain",
+            "lines": [
+              67,
+              74,
+              80
+            ],
+            "rationale": "Rewards are calculated based on instantaneous share of total staked without any time-weighted factor, allowing an attacker to flash-loan or deposit a massive amount of tokens for a single block, claim the majority of the rewards, and immediately withdraw.",
+            "source": "counsel",
+            "proof": null
+          }
+        ],
+        "model": "gemini-3.5-flash-lite",
+        "cost_usd": 0.0001471,
+        "duration_s": 1.3891088962554932,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "FlashFarm",
+        "is_sound": false,
+        "hits": "set()",
+        "noise": "{'flash-loan-attack'}",
+        "misses": "{'logic-error'}",
+        "named_anything": true,
+        "proofs_expected": 1,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 0.0001471,
+        "duration_s": 1.3891088962554932,
+        "error": null
+      }
+    },
+    {
+      "case": "GlassJaw",
+      "dossier": {
+        "case_name": "GlassJaw",
+        "findings": [
+          {
+            "category": "unprotected-selfdestruct",
+            "severity": "high",
+            "confidence": 0.5,
+            "title": "Unprotected selfdestruct allows anyone to drain the contract",
+            "lines": [
+              16
+            ],
+            "rationale": "The `demolish` function lacks any access control, allowing any external user to destroy the contract and send the entire contract balance to an arbitrary address.",
+            "source": "counsel",
+            "proof": null
+          }
+        ],
+        "model": "gemini-3.5-flash-lite",
+        "cost_usd": 7.65e-05,
+        "duration_s": 0.7496609687805176,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "GlassJaw",
+        "is_sound": false,
+        "hits": "{'unprotected-selfdestruct'}",
+        "noise": "set()",
+        "misses": "set()",
+        "named_anything": true,
+        "proofs_expected": 1,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 7.65e-05,
+        "duration_s": 0.7496609687805176,
+        "error": null
+      }
+    },
+    {
+      "case": "HallOfMirrors",
+      "dossier": {
+        "case_name": "HallOfMirrors",
+        "findings": [
+          {
+            "category": "price-oracle-manipulation",
+            "severity": "high",
+            "confidence": 0.5,
+            "title": "Spot price oracle manipulation via AMM",
+            "lines": [
+              91,
+              196
+            ],
+            "rationale": "PawnShop relies on the spot price of the MirrorPool constant-product AMM to value collateral. An attacker can manipulate this spot price within a single transaction using swaps or flash loans to artificially inflate collateral value and drain funds from the lending contract.",
+            "source": "counsel",
+            "proof": null
+          }
+        ],
+        "model": "gemini-3.5-flash-lite",
+        "cost_usd": 0.00023290000000000002,
+        "duration_s": 0.8415505886077881,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "HallOfMirrors",
+        "is_sound": false,
+        "hits": "{'price-oracle-manipulation'}",
+        "noise": "set()",
+        "misses": "set()",
+        "named_anything": true,
+        "proofs_expected": 1,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 0.00023290000000000002,
+        "duration_s": 0.8415505886077881,
+        "error": null
+      }
+    },
+    {
+      "case": "HollowVault",
+      "dossier": {
+        "case_name": "HollowVault",
+        "findings": [
+          {
+            "category": "reentrancy",
+            "severity": "high",
+            "confidence": 0.5,
+            "title": "Classic Reentrancy via External Call",
+            "lines": [
+              16,
+              17,
+              18,
+              19,
+              20
+            ],
+            "rationale": "The contract sends ether via a low-level call before updating the user's balance to zero, allowing a malicious receiver to re-enter `withdraw` and drain funds.",
+            "source": "counsel",
+            "proof": null
+          }
+        ],
+        "model": "gemini-3.5-flash-lite",
+        "cost_usd": 8.88e-05,
+        "duration_s": 20.005668878555298,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "HollowVault",
+        "is_sound": false,
+        "hits": "{'reentrancy'}",
+        "noise": "set()",
+        "misses": "set()",
+        "named_anything": true,
+        "proofs_expected": 1,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 8.88e-05,
+        "duration_s": 20.005668878555298,
+        "error": null
+      }
+    },
+    {
+      "case": "Irongate",
+      "dossier": {
+        "case_name": "Irongate",
+        "findings": [],
+        "model": "gemini-3.5-flash-lite",
+        "cost_usd": 4.7900000000000006e-05,
+        "duration_s": 0.5742068290710449,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "Irongate",
+        "is_sound": true,
+        "hits": "set()",
+        "noise": "set()",
+        "misses": "set()",
+        "named_anything": false,
+        "proofs_expected": 0,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 4.7900000000000006e-05,
+        "duration_s": 0.5742068290710449,
+        "error": null
+      }
+    },
+    {
+      "case": "LatchGate",
+      "dossier": {
+        "case_name": "LatchGate",
+        "findings": [],
+        "model": "gemini-3.5-flash-lite",
+        "cost_usd": 5.310000000000001e-05,
+        "duration_s": 0.5194251537322998,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "LatchGate",
+        "is_sound": true,
+        "hits": "set()",
+        "noise": "set()",
+        "misses": "set()",
+        "named_anything": false,
+        "proofs_expected": 0,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 5.310000000000001e-05,
+        "duration_s": 0.5194251537322998,
+        "error": null
+      }
+    },
+    {
+      "case": "LooseLedger",
+      "dossier": {
+        "case_name": "LooseLedger",
+        "findings": [
+          {
+            "category": "reentrancy",
+            "severity": "high",
+            "confidence": 0.5,
+            "title": "Reentrancy vulnerability in spend function",
+            "lines": [
+              16,
+              17,
+              18
+            ],
+            "rationale": "The `spend` function sends ETH to the caller using a low-level call before updating the state or while the state reduction can be exploited via reentrancy, allowing an attacker to drain the contract's balance.",
+            "source": "counsel",
+            "proof": null
+          }
+        ],
+        "model": "gemini-3.5-flash-lite",
+        "cost_usd": 8.92e-05,
+        "duration_s": 0.9031939506530762,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "LooseLedger",
+        "is_sound": false,
+        "hits": "set()",
+        "noise": "{'reentrancy'}",
+        "misses": "{'arithmetic'}",
+        "named_anything": true,
+        "proofs_expected": 1,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 8.92e-05,
+        "duration_s": 0.9031939506530762,
+        "error": null
+      }
+    },
+    {
+      "case": "OpenTill",
+      "dossier": {
+        "case_name": "OpenTill",
+        "findings": [
+          {
+            "category": "access-control",
+            "severity": "high",
+            "confidence": 0.5,
+            "title": "Unprotected Drain Function",
+            "lines": [
+              21,
+              22,
+              23
+            ],
+            "rationale": "The `drain` function has no access control modifier (such as `onlyOwner`), allowing any arbitrary user to steal the entire native currency balance of the contract.",
+            "source": "counsel",
+            "proof": null
+          }
+        ],
+        "model": "gemini-3.5-flash-lite",
+        "cost_usd": 8.13e-05,
+        "duration_s": 0.816537618637085,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "OpenTill",
+        "is_sound": false,
+        "hits": "{'access-control'}",
+        "noise": "set()",
+        "misses": "set()",
+        "named_anything": true,
+        "proofs_expected": 1,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 8.13e-05,
+        "duration_s": 0.816537618637085,
+        "error": null
+      }
+    },
+    {
+      "case": "OriginGate",
+      "dossier": {
+        "case_name": "OriginGate",
+        "findings": [
+          {
+            "category": "tx-origin-auth",
+            "severity": "high",
+            "confidence": 0.5,
+            "title": "Use of tx.origin for Authorization",
+            "lines": [
+              17
+            ],
+            "rationale": "Using tx.origin for access control allows phishing attacks where a malicious contract tricks the owner into calling it, enabling the attacker to drain the wallet.",
+            "source": "counsel",
+            "proof": null
+          }
+        ],
+        "model": "gemini-3.5-flash-lite",
+        "cost_usd": 7.620000000000001e-05,
+        "duration_s": 0.7499308586120605,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "OriginGate",
+        "is_sound": false,
+        "hits": "{'tx-origin-auth'}",
+        "noise": "set()",
+        "misses": "set()",
+        "named_anything": true,
+        "proofs_expected": 1,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 7.620000000000001e-05,
+        "duration_s": 0.7499308586120605,
+        "error": null
+      }
+    },
+    {
+      "case": "TrueVault",
+      "dossier": {
+        "case_name": "TrueVault",
+        "findings": [],
+        "model": "gemini-3.5-flash-lite",
+        "cost_usd": 5.9600000000000005e-05,
+        "duration_s": 0.5412805080413818,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "TrueVault",
+        "is_sound": true,
+        "hits": "set()",
+        "noise": "set()",
+        "misses": "set()",
+        "named_anything": false,
+        "proofs_expected": 0,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 5.9600000000000005e-05,
+        "duration_s": 0.5412805080413818,
+        "error": null
+      }
+    }
+  ]
+}

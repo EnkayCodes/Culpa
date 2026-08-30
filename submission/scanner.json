@@ -1,0 +1,1097 @@
+{
+  "investigator": "scanner",
+  "who": "slither-scanner",
+  "selection": "committed",
+  "model": "gemini-3.5-flash-lite",
+  "cases": 10,
+  "wall_seconds": 6.9,
+  "tally": {
+    "cases": 10,
+    "vulnerable": 7,
+    "sound": 3,
+    "hits": 4,
+    "noise": 16,
+    "misses": 3,
+    "micro_precision": 0.2,
+    "micro_recall": 0.5714285714285714,
+    "micro_f1": 0.29629629629629634,
+    "macro_precision": 0.3148148148148148,
+    "macro_recall": 0.4444444444444444,
+    "macro_f1": 0.35185185185185186,
+    "noise_on_sound_rate": 1.0,
+    "proofs_expected": 7,
+    "proofs_landed": 0,
+    "landed_rate": 0.0,
+    "unbacked_claims": 0,
+    "errored": 0,
+    "total_cost_usd": 0.0,
+    "cost_per_case": 0.0,
+    "total_duration_s": 6.853752374649048,
+    "duration_per_case": 0.6853752374649048,
+    "by_kind": {
+      "access-control": {
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6666666666666666,
+        "support": 1
+      },
+      "arithmetic": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 1
+      },
+      "logic-error": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 1
+      },
+      "other": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      },
+      "price-oracle-manipulation": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 1
+      },
+      "reentrancy": {
+        "precision": 0.3333333333333333,
+        "recall": 1.0,
+        "f1": 0.5,
+        "support": 1
+      },
+      "tx-origin-auth": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "unchecked-low-level-call": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      },
+      "unprotected-selfdestruct": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      }
+    }
+  },
+  "records": [
+    {
+      "case": "FlashFarm",
+      "dossier": {
+        "case_name": "FlashFarm",
+        "findings": [
+          {
+            "category": "unchecked-low-level-call",
+            "severity": "high",
+            "confidence": 0.7,
+            "title": "unchecked-transfer",
+            "lines": [
+              72,
+              73,
+              74,
+              75,
+              76,
+              77,
+              78,
+              79,
+              80
+            ],
+            "rationale": "FlashFarm.claim() (casework/contracts/FlashFarm.sol#72-80) ignores return value by rewardToken.transfer(msg.sender,reward) (casework/contracts/FlashFarm.sol#79)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "unchecked-low-level-call",
+            "severity": "high",
+            "confidence": 0.7,
+            "title": "unchecked-transfer",
+            "lines": [
+              55,
+              56,
+              57,
+              58
+            ],
+            "rationale": "FlashFarm.fund(uint256) (casework/contracts/FlashFarm.sol#55-58) ignores return value by rewardToken.transferFrom(msg.sender,address(this),amount) (casework/contracts/FlashFarm.sol#56)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "unchecked-low-level-call",
+            "severity": "high",
+            "confidence": 0.7,
+            "title": "unchecked-transfer",
+            "lines": [
+              60,
+              61,
+              62,
+              63,
+              64
+            ],
+            "rationale": "FlashFarm.stake(uint256) (casework/contracts/FlashFarm.sol#60-64) ignores return value by stakeToken.transferFrom(msg.sender,address(this),amount) (casework/contracts/FlashFarm.sol#61)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "unchecked-low-level-call",
+            "severity": "high",
+            "confidence": 0.7,
+            "title": "unchecked-transfer",
+            "lines": [
+              66,
+              67,
+              68,
+              69,
+              70
+            ],
+            "rationale": "FlashFarm.unstake(uint256) (casework/contracts/FlashFarm.sol#66-70) ignores return value by stakeToken.transfer(msg.sender,amount) (casework/contracts/FlashFarm.sol#69)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "reentrancy",
+            "severity": "low",
+            "confidence": 0.7,
+            "title": "reentrancy-benign",
+            "lines": [
+              55,
+              56,
+              57,
+              58
+            ],
+            "rationale": "Reentrancy in FlashFarm.fund(uint256) (casework/contracts/FlashFarm.sol#55-58):\n\tExternal calls:\n\t- rewardToken.transferFrom(msg.sender,address(this),amount) (casework/contracts/FlashFarm.sol#56)\n\tState variables written after the call(s):\n\t- rewardPool += amount (casework/contracts/FlashFarm.sol#57)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "reentrancy",
+            "severity": "low",
+            "confidence": 0.7,
+            "title": "reentrancy-benign",
+            "lines": [
+              60,
+              61,
+              62,
+              63,
+              64
+            ],
+            "rationale": "Reentrancy in FlashFarm.stake(uint256) (casework/contracts/FlashFarm.sol#60-64):\n\tExternal calls:\n\t- stakeToken.transferFrom(msg.sender,address(this),amount) (casework/contracts/FlashFarm.sol#61)\n\tState variables written after the call(s):\n\t- staked[msg.sender] += amount (casework/contracts/FlashFarm.sol#62)\n\t- totalStaked += amount (casework/contracts/FlashFarm.sol#63)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "other",
+            "severity": "info",
+            "confidence": 0.7,
+            "title": "solc-version",
+            "lines": [
+              2
+            ],
+            "rationale": "Version constraint ^0.8.20 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)\n\t- VerbatimInvalidDeduplication\n\t- FullInlinerNonExpressionSplitArgumentEvaluationOrder\n\t- MissingSideEffectsOnSelectorAccess.\nIt is used by:\n\t- ^0.8.20 (casework/contracts/FlashFarm.sol#2)",
+            "source": "scanner",
+            "proof": null
+          }
+        ],
+        "model": null,
+        "cost_usd": 0.0,
+        "duration_s": 0.698138952255249,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "FlashFarm",
+        "is_sound": false,
+        "hits": "set()",
+        "noise": "{'other', 'reentrancy', 'unchecked-low-level-call'}",
+        "misses": "{'logic-error'}",
+        "named_anything": true,
+        "proofs_expected": 1,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 0.0,
+        "duration_s": 0.698138952255249,
+        "error": null
+      }
+    },
+    {
+      "case": "GlassJaw",
+      "dossier": {
+        "case_name": "GlassJaw",
+        "findings": [
+          {
+            "category": "unprotected-selfdestruct",
+            "severity": "high",
+            "confidence": 0.7,
+            "title": "suicidal",
+            "lines": [
+              13,
+              14,
+              15
+            ],
+            "rationale": "GlassJaw.demolish(address) (casework/contracts/GlassJaw.sol#13-15) allows anyone to destruct the contract",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "other",
+            "severity": "info",
+            "confidence": 0.7,
+            "title": "solc-version",
+            "lines": [
+              2
+            ],
+            "rationale": "Version constraint ^0.8.20 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)\n\t- VerbatimInvalidDeduplication\n\t- FullInlinerNonExpressionSplitArgumentEvaluationOrder\n\t- MissingSideEffectsOnSelectorAccess.\nIt is used by:\n\t- ^0.8.20 (casework/contracts/GlassJaw.sol#2)",
+            "source": "scanner",
+            "proof": null
+          }
+        ],
+        "model": null,
+        "cost_usd": 0.0,
+        "duration_s": 0.6795408725738525,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "GlassJaw",
+        "is_sound": false,
+        "hits": "{'unprotected-selfdestruct'}",
+        "noise": "{'other'}",
+        "misses": "set()",
+        "named_anything": true,
+        "proofs_expected": 1,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 0.0,
+        "duration_s": 0.6795408725738525,
+        "error": null
+      }
+    },
+    {
+      "case": "HallOfMirrors",
+      "dossier": {
+        "case_name": "HallOfMirrors",
+        "findings": [
+          {
+            "category": "unchecked-low-level-call",
+            "severity": "high",
+            "confidence": 0.7,
+            "title": "unchecked-transfer",
+            "lines": [
+              75,
+              76,
+              77,
+              78,
+              79,
+              80,
+              81
+            ],
+            "rationale": "MirrorPool.seed(uint256,uint256) (casework/contracts/HallOfMirrors.sol#75-81) ignores return value by stake.transferFrom(msg.sender,address(this),amountStake) (casework/contracts/HallOfMirrors.sol#77)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "unchecked-low-level-call",
+            "severity": "high",
+            "confidence": 0.7,
+            "title": "unchecked-transfer",
+            "lines": [
+              153,
+              154,
+              155,
+              156
+            ],
+            "rationale": "PawnShop.pledge(uint256) (casework/contracts/HallOfMirrors.sol#153-156) ignores return value by stake.transferFrom(msg.sender,address(this),amount) (casework/contracts/HallOfMirrors.sol#154)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "unchecked-low-level-call",
+            "severity": "high",
+            "confidence": 0.7,
+            "title": "unchecked-transfer",
+            "lines": [
+              75,
+              76,
+              77,
+              78,
+              79,
+              80,
+              81
+            ],
+            "rationale": "MirrorPool.seed(uint256,uint256) (casework/contracts/HallOfMirrors.sol#75-81) ignores return value by cash.transferFrom(msg.sender,address(this),amountCash) (casework/contracts/HallOfMirrors.sol#78)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "unchecked-low-level-call",
+            "severity": "high",
+            "confidence": 0.7,
+            "title": "unchecked-transfer",
+            "lines": [
+              98,
+              99,
+              100,
+              101,
+              102,
+              103,
+              104,
+              105,
+              106
+            ],
+            "rationale": "MirrorPool.swapStakeForCash(uint256) (casework/contracts/HallOfMirrors.sol#98-106) ignores return value by cash.transfer(msg.sender,out) (casework/contracts/HallOfMirrors.sol#105)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "unchecked-low-level-call",
+            "severity": "high",
+            "confidence": 0.7,
+            "title": "unchecked-transfer",
+            "lines": [
+              158,
+              159,
+              160,
+              161,
+              162
+            ],
+            "rationale": "PawnShop.draw(uint256) (casework/contracts/HallOfMirrors.sol#158-162) ignores return value by cash.transfer(msg.sender,amount) (casework/contracts/HallOfMirrors.sol#161)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "unchecked-low-level-call",
+            "severity": "high",
+            "confidence": 0.7,
+            "title": "unchecked-transfer",
+            "lines": [
+              88,
+              89,
+              90,
+              91,
+              92,
+              93,
+              94,
+              95,
+              96
+            ],
+            "rationale": "MirrorPool.swapCashForStake(uint256) (casework/contracts/HallOfMirrors.sol#88-96) ignores return value by cash.transferFrom(msg.sender,address(this),amountIn) (casework/contracts/HallOfMirrors.sol#89)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "unchecked-low-level-call",
+            "severity": "high",
+            "confidence": 0.7,
+            "title": "unchecked-transfer",
+            "lines": [
+              98,
+              99,
+              100,
+              101,
+              102,
+              103,
+              104,
+              105,
+              106
+            ],
+            "rationale": "MirrorPool.swapStakeForCash(uint256) (casework/contracts/HallOfMirrors.sol#98-106) ignores return value by stake.transferFrom(msg.sender,address(this),amountIn) (casework/contracts/HallOfMirrors.sol#99)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "unchecked-low-level-call",
+            "severity": "high",
+            "confidence": 0.7,
+            "title": "unchecked-transfer",
+            "lines": [
+              88,
+              89,
+              90,
+              91,
+              92,
+              93,
+              94,
+              95,
+              96
+            ],
+            "rationale": "MirrorPool.swapCashForStake(uint256) (casework/contracts/HallOfMirrors.sol#88-96) ignores return value by stake.transfer(msg.sender,out) (casework/contracts/HallOfMirrors.sol#95)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "unchecked-low-level-call",
+            "severity": "high",
+            "confidence": 0.7,
+            "title": "unchecked-transfer",
+            "lines": [
+              127,
+              128,
+              129,
+              130,
+              131,
+              132
+            ],
+            "rationale": "QuickLoan.borrow(uint256,bytes) (casework/contracts/HallOfMirrors.sol#127-132) ignores return value by cash.transfer(msg.sender,amount) (casework/contracts/HallOfMirrors.sol#129)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "arithmetic",
+            "severity": "medium",
+            "confidence": 0.7,
+            "title": "divide-before-multiply",
+            "lines": [
+              164,
+              165,
+              166,
+              167,
+              168
+            ],
+            "rationale": "PawnShop._withinLimit(address) (casework/contracts/HallOfMirrors.sol#164-168) performs a multiplication on the result of a division:\n\t- value = (pledged[who] * feed.stakePriceInCash()) / 1e18 (casework/contracts/HallOfMirrors.sol#165)\n\t- ceiling = (value * LOAN_TO_VALUE_BPS) / 10_000 (casework/contracts/HallOfMirrors.sol#166)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "reentrancy",
+            "severity": "medium",
+            "confidence": 0.7,
+            "title": "reentrancy-no-eth",
+            "lines": [
+              75,
+              76,
+              77,
+              78,
+              79,
+              80,
+              81
+            ],
+            "rationale": "Reentrancy in MirrorPool.seed(uint256,uint256) (casework/contracts/HallOfMirrors.sol#75-81):\n\tExternal calls:\n\t- stake.transferFrom(msg.sender,address(this),amountStake) (casework/contracts/HallOfMirrors.sol#77)\n\t- cash.transferFrom(msg.sender,address(this),amountCash) (casework/contracts/HallOfMirrors.sol#78)\n\tState variables written after the call(s):\n\t- heldCash = amountCash (casework/contracts/HallOfMirrors.sol#80)\n\tMirrorPool.heldCash (casework/contracts/HallOfMirrors.sol#68) can be used in cross function reentrancies:\n\t- MirrorPool.heldCash (casework/contracts/HallOfMirrors.sol#68)\n\t- MirrorPool.seed(uint256,uint256) (casework/contracts/HallOfMirrors.sol#75-81)\n\t- MirrorPool.stakePriceInCash() (casework/contracts/HallOfMirrors.sol#84-86)\n\t- MirrorPool.swapCashForStake(uint256) (casew",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "reentrancy",
+            "severity": "low",
+            "confidence": 0.7,
+            "title": "reentrancy-benign",
+            "lines": [
+              98,
+              99,
+              100,
+              101,
+              102,
+              103,
+              104,
+              105,
+              106
+            ],
+            "rationale": "Reentrancy in MirrorPool.swapStakeForCash(uint256) (casework/contracts/HallOfMirrors.sol#98-106):\n\tExternal calls:\n\t- stake.transferFrom(msg.sender,address(this),amountIn) (casework/contracts/HallOfMirrors.sol#99)\n\tState variables written after the call(s):\n\t- heldCash = newCash (casework/contracts/HallOfMirrors.sol#104)\n\t- heldStake = newStake (casework/contracts/HallOfMirrors.sol#103)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "reentrancy",
+            "severity": "low",
+            "confidence": 0.7,
+            "title": "reentrancy-benign",
+            "lines": [
+              88,
+              89,
+              90,
+              91,
+              92,
+              93,
+              94,
+              95,
+              96
+            ],
+            "rationale": "Reentrancy in MirrorPool.swapCashForStake(uint256) (casework/contracts/HallOfMirrors.sol#88-96):\n\tExternal calls:\n\t- cash.transferFrom(msg.sender,address(this),amountIn) (casework/contracts/HallOfMirrors.sol#89)\n\tState variables written after the call(s):\n\t- heldCash = newCash (casework/contracts/HallOfMirrors.sol#93)\n\t- heldStake = newStake (casework/contracts/HallOfMirrors.sol#94)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "reentrancy",
+            "severity": "low",
+            "confidence": 0.7,
+            "title": "reentrancy-benign",
+            "lines": [
+              153,
+              154,
+              155,
+              156
+            ],
+            "rationale": "Reentrancy in PawnShop.pledge(uint256) (casework/contracts/HallOfMirrors.sol#153-156):\n\tExternal calls:\n\t- stake.transferFrom(msg.sender,address(this),amount) (casework/contracts/HallOfMirrors.sol#154)\n\tState variables written after the call(s):\n\t- pledged[msg.sender] += amount (casework/contracts/HallOfMirrors.sol#155)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "other",
+            "severity": "info",
+            "confidence": 0.7,
+            "title": "solc-version",
+            "lines": [
+              2
+            ],
+            "rationale": "Version constraint ^0.8.20 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)\n\t- VerbatimInvalidDeduplication\n\t- FullInlinerNonExpressionSplitArgumentEvaluationOrder\n\t- MissingSideEffectsOnSelectorAccess.\nIt is used by:\n\t- ^0.8.20 (casework/contracts/HallOfMirrors.sol#2)",
+            "source": "scanner",
+            "proof": null
+          }
+        ],
+        "model": null,
+        "cost_usd": 0.0,
+        "duration_s": 0.7997705936431885,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "HallOfMirrors",
+        "is_sound": false,
+        "hits": "set()",
+        "noise": "{'other', 'reentrancy', 'arithmetic', 'unchecked-low-level-call'}",
+        "misses": "{'price-oracle-manipulation'}",
+        "named_anything": true,
+        "proofs_expected": 1,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 0.0,
+        "duration_s": 0.7997705936431885,
+        "error": null
+      }
+    },
+    {
+      "case": "HollowVault",
+      "dossier": {
+        "case_name": "HollowVault",
+        "findings": [
+          {
+            "category": "reentrancy",
+            "severity": "high",
+            "confidence": 0.7,
+            "title": "reentrancy-eth",
+            "lines": [
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21
+            ],
+            "rationale": "Reentrancy in HollowVault.withdraw() (casework/contracts/HollowVault.sol#13-21):\n\tExternal calls:\n\t- (ok,None) = msg.sender.call{value: owed}() (casework/contracts/HollowVault.sol#17)\n\tState variables written after the call(s):\n\t- balances[msg.sender] = 0 (casework/contracts/HollowVault.sol#20)\n\tHollowVault.balances (casework/contracts/HollowVault.sol#7) can be used in cross function reentrancies:\n\t- HollowVault.balances (casework/contracts/HollowVault.sol#7)\n\t- HollowVault.deposit() (casework/contracts/HollowVault.sol#9-11)\n\t- HollowVault.withdraw() (casework/contracts/HollowVault.sol#13-21)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "other",
+            "severity": "info",
+            "confidence": 0.7,
+            "title": "solc-version",
+            "lines": [
+              2
+            ],
+            "rationale": "Version constraint ^0.8.20 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)\n\t- VerbatimInvalidDeduplication\n\t- FullInlinerNonExpressionSplitArgumentEvaluationOrder\n\t- MissingSideEffectsOnSelectorAccess.\nIt is used by:\n\t- ^0.8.20 (casework/contracts/HollowVault.sol#2)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "other",
+            "severity": "info",
+            "confidence": 0.7,
+            "title": "low-level-calls",
+            "lines": [
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21
+            ],
+            "rationale": "Low level call in HollowVault.withdraw() (casework/contracts/HollowVault.sol#13-21):\n\t- (ok,None) = msg.sender.call{value: owed}() (casework/contracts/HollowVault.sol#17)",
+            "source": "scanner",
+            "proof": null
+          }
+        ],
+        "model": null,
+        "cost_usd": 0.0,
+        "duration_s": 0.6630821228027344,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "HollowVault",
+        "is_sound": false,
+        "hits": "{'reentrancy'}",
+        "noise": "{'other'}",
+        "misses": "set()",
+        "named_anything": true,
+        "proofs_expected": 1,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 0.0,
+        "duration_s": 0.6630821228027344,
+        "error": null
+      }
+    },
+    {
+      "case": "Irongate",
+      "dossier": {
+        "case_name": "Irongate",
+        "findings": [
+          {
+            "category": "other",
+            "severity": "info",
+            "confidence": 0.7,
+            "title": "solc-version",
+            "lines": [
+              2
+            ],
+            "rationale": "Version constraint ^0.8.20 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)\n\t- VerbatimInvalidDeduplication\n\t- FullInlinerNonExpressionSplitArgumentEvaluationOrder\n\t- MissingSideEffectsOnSelectorAccess.\nIt is used by:\n\t- ^0.8.20 (casework/contracts/Irongate.sol#2)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "other",
+            "severity": "info",
+            "confidence": 0.7,
+            "title": "low-level-calls",
+            "lines": [
+              21,
+              22,
+              23,
+              24,
+              25,
+              26
+            ],
+            "rationale": "Low level call in Irongate.withdraw(uint256) (casework/contracts/Irongate.sol#21-26):\n\t- (ok,None) = msg.sender.call{value: amount}() (casework/contracts/Irongate.sol#24)",
+            "source": "scanner",
+            "proof": null
+          }
+        ],
+        "model": null,
+        "cost_usd": 0.0,
+        "duration_s": 0.6482558250427246,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "Irongate",
+        "is_sound": true,
+        "hits": "set()",
+        "noise": "{'other'}",
+        "misses": "set()",
+        "named_anything": true,
+        "proofs_expected": 0,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 0.0,
+        "duration_s": 0.6482558250427246,
+        "error": null
+      }
+    },
+    {
+      "case": "LatchGate",
+      "dossier": {
+        "case_name": "LatchGate",
+        "findings": [
+          {
+            "category": "other",
+            "severity": "low",
+            "confidence": 0.7,
+            "title": "missing-zero-check",
+            "lines": [
+              31,
+              32
+            ],
+            "rationale": "LatchGate.proposeOperator(address).who (casework/contracts/LatchGate.sol#31) lacks a zero-check on :\n\t\t- pendingOperator = who (casework/contracts/LatchGate.sol#32)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "other",
+            "severity": "info",
+            "confidence": 0.7,
+            "title": "solc-version",
+            "lines": [
+              2
+            ],
+            "rationale": "Version constraint ^0.8.20 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)\n\t- VerbatimInvalidDeduplication\n\t- FullInlinerNonExpressionSplitArgumentEvaluationOrder\n\t- MissingSideEffectsOnSelectorAccess.\nIt is used by:\n\t- ^0.8.20 (casework/contracts/LatchGate.sol#2)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "other",
+            "severity": "info",
+            "confidence": 0.7,
+            "title": "low-level-calls",
+            "lines": [
+              24,
+              25,
+              26,
+              27,
+              28,
+              29
+            ],
+            "rationale": "Low level call in LatchGate.withdraw(uint256) (casework/contracts/LatchGate.sol#24-29):\n\t- (ok,None) = msg.sender.call{value: amount}() (casework/contracts/LatchGate.sol#27)",
+            "source": "scanner",
+            "proof": null
+          }
+        ],
+        "model": null,
+        "cost_usd": 0.0,
+        "duration_s": 0.6712520122528076,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "LatchGate",
+        "is_sound": true,
+        "hits": "set()",
+        "noise": "{'other'}",
+        "misses": "set()",
+        "named_anything": true,
+        "proofs_expected": 0,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 0.0,
+        "duration_s": 0.6712520122528076,
+        "error": null
+      }
+    },
+    {
+      "case": "LooseLedger",
+      "dossier": {
+        "case_name": "LooseLedger",
+        "findings": [
+          {
+            "category": "other",
+            "severity": "info",
+            "confidence": 0.7,
+            "title": "solc-version",
+            "lines": [
+              2
+            ],
+            "rationale": "Version constraint ^0.8.20 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)\n\t- VerbatimInvalidDeduplication\n\t- FullInlinerNonExpressionSplitArgumentEvaluationOrder\n\t- MissingSideEffectsOnSelectorAccess.\nIt is used by:\n\t- ^0.8.20 (casework/contracts/LooseLedger.sol#2)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "other",
+            "severity": "info",
+            "confidence": 0.7,
+            "title": "low-level-calls",
+            "lines": [
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21
+            ],
+            "rationale": "Low level call in LooseLedger.spend(uint256) (casework/contracts/LooseLedger.sol#15-21):\n\t- (ok,None) = msg.sender.call{value: amount}() (casework/contracts/LooseLedger.sol#19)",
+            "source": "scanner",
+            "proof": null
+          }
+        ],
+        "model": null,
+        "cost_usd": 0.0,
+        "duration_s": 0.6677713394165039,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "LooseLedger",
+        "is_sound": false,
+        "hits": "set()",
+        "noise": "{'other'}",
+        "misses": "{'arithmetic'}",
+        "named_anything": true,
+        "proofs_expected": 1,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 0.0,
+        "duration_s": 0.6677713394165039,
+        "error": null
+      }
+    },
+    {
+      "case": "OpenTill",
+      "dossier": {
+        "case_name": "OpenTill",
+        "findings": [
+          {
+            "category": "access-control",
+            "severity": "high",
+            "confidence": 0.7,
+            "title": "arbitrary-send-eth",
+            "lines": [
+              21,
+              22,
+              23
+            ],
+            "rationale": "OpenTill.drain(address) (casework/contracts/OpenTill.sol#21-23) sends eth to arbitrary user\n\tDangerous calls:\n\t- to.transfer(address(this).balance) (casework/contracts/OpenTill.sol#22)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "other",
+            "severity": "low",
+            "confidence": 0.7,
+            "title": "missing-zero-check",
+            "lines": [
+              21,
+              22
+            ],
+            "rationale": "OpenTill.drain(address).to (casework/contracts/OpenTill.sol#21) lacks a zero-check on :\n\t\t- to.transfer(address(this).balance) (casework/contracts/OpenTill.sol#22)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "other",
+            "severity": "info",
+            "confidence": 0.7,
+            "title": "solc-version",
+            "lines": [
+              2
+            ],
+            "rationale": "Version constraint ^0.8.20 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)\n\t- VerbatimInvalidDeduplication\n\t- FullInlinerNonExpressionSplitArgumentEvaluationOrder\n\t- MissingSideEffectsOnSelectorAccess.\nIt is used by:\n\t- ^0.8.20 (casework/contracts/OpenTill.sol#2)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "other",
+            "severity": "info",
+            "confidence": 0.7,
+            "title": "low-level-calls",
+            "lines": [
+              13,
+              14,
+              15,
+              16,
+              17,
+              18
+            ],
+            "rationale": "Low level call in OpenTill.withdraw(uint256) (casework/contracts/OpenTill.sol#13-18):\n\t- (ok,None) = msg.sender.call{value: amount}() (casework/contracts/OpenTill.sol#16)",
+            "source": "scanner",
+            "proof": null
+          }
+        ],
+        "model": null,
+        "cost_usd": 0.0,
+        "duration_s": 0.6536037921905518,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "OpenTill",
+        "is_sound": false,
+        "hits": "{'access-control'}",
+        "noise": "{'other'}",
+        "misses": "set()",
+        "named_anything": true,
+        "proofs_expected": 1,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 0.0,
+        "duration_s": 0.6536037921905518,
+        "error": null
+      }
+    },
+    {
+      "case": "OriginGate",
+      "dossier": {
+        "case_name": "OriginGate",
+        "findings": [
+          {
+            "category": "access-control",
+            "severity": "high",
+            "confidence": 0.7,
+            "title": "arbitrary-send-eth",
+            "lines": [
+              14,
+              15,
+              16,
+              17,
+              18
+            ],
+            "rationale": "OriginGate.withdraw(address,uint256) (casework/contracts/OriginGate.sol#14-18) sends eth to arbitrary user\n\tDangerous calls:\n\t- (ok,None) = to.call{value: amount}() (casework/contracts/OriginGate.sol#16)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "tx-origin-auth",
+            "severity": "medium",
+            "confidence": 0.7,
+            "title": "tx-origin",
+            "lines": [
+              14,
+              15,
+              16,
+              17,
+              18
+            ],
+            "rationale": "OriginGate.withdraw(address,uint256) (casework/contracts/OriginGate.sol#14-18) uses tx.origin for authorization: require(bool,string)(tx.origin == owner,not owner) (casework/contracts/OriginGate.sol#15)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "other",
+            "severity": "low",
+            "confidence": 0.7,
+            "title": "missing-zero-check",
+            "lines": [
+              14,
+              16
+            ],
+            "rationale": "OriginGate.withdraw(address,uint256).to (casework/contracts/OriginGate.sol#14) lacks a zero-check on :\n\t\t- (ok,None) = to.call{value: amount}() (casework/contracts/OriginGate.sol#16)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "other",
+            "severity": "info",
+            "confidence": 0.7,
+            "title": "solc-version",
+            "lines": [
+              2
+            ],
+            "rationale": "Version constraint ^0.8.20 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)\n\t- VerbatimInvalidDeduplication\n\t- FullInlinerNonExpressionSplitArgumentEvaluationOrder\n\t- MissingSideEffectsOnSelectorAccess.\nIt is used by:\n\t- ^0.8.20 (casework/contracts/OriginGate.sol#2)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "other",
+            "severity": "info",
+            "confidence": 0.7,
+            "title": "low-level-calls",
+            "lines": [
+              14,
+              15,
+              16,
+              17,
+              18
+            ],
+            "rationale": "Low level call in OriginGate.withdraw(address,uint256) (casework/contracts/OriginGate.sol#14-18):\n\t- (ok,None) = to.call{value: amount}() (casework/contracts/OriginGate.sol#16)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "other",
+            "severity": "info",
+            "confidence": 0.7,
+            "title": "immutable-states",
+            "lines": [
+              8
+            ],
+            "rationale": "OriginGate.owner (casework/contracts/OriginGate.sol#8) should be immutable",
+            "source": "scanner",
+            "proof": null
+          }
+        ],
+        "model": null,
+        "cost_usd": 0.0,
+        "duration_s": 0.6712939739227295,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "OriginGate",
+        "is_sound": false,
+        "hits": "{'tx-origin-auth'}",
+        "noise": "{'other', 'access-control'}",
+        "misses": "set()",
+        "named_anything": true,
+        "proofs_expected": 1,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 0.0,
+        "duration_s": 0.6712939739227295,
+        "error": null
+      }
+    },
+    {
+      "case": "TrueVault",
+      "dossier": {
+        "case_name": "TrueVault",
+        "findings": [
+          {
+            "category": "other",
+            "severity": "low",
+            "confidence": 0.7,
+            "title": "missing-zero-check",
+            "lines": [
+              40,
+              41
+            ],
+            "rationale": "TrueVault.transferOwnership(address).to (casework/contracts/TrueVault.sol#40) lacks a zero-check on :\n\t\t- pendingOwner = to (casework/contracts/TrueVault.sol#41)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "other",
+            "severity": "info",
+            "confidence": 0.7,
+            "title": "solc-version",
+            "lines": [
+              2
+            ],
+            "rationale": "Version constraint ^0.8.20 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)\n\t- VerbatimInvalidDeduplication\n\t- FullInlinerNonExpressionSplitArgumentEvaluationOrder\n\t- MissingSideEffectsOnSelectorAccess.\nIt is used by:\n\t- ^0.8.20 (casework/contracts/TrueVault.sol#2)",
+            "source": "scanner",
+            "proof": null
+          },
+          {
+            "category": "other",
+            "severity": "info",
+            "confidence": 0.7,
+            "title": "low-level-calls",
+            "lines": [
+              33,
+              34,
+              35,
+              36,
+              37,
+              38
+            ],
+            "rationale": "Low level call in TrueVault.withdraw(uint256) (casework/contracts/TrueVault.sol#33-38):\n\t- (ok,None) = msg.sender.call{value: amount}() (casework/contracts/TrueVault.sol#36)",
+            "source": "scanner",
+            "proof": null
+          }
+        ],
+        "model": null,
+        "cost_usd": 0.0,
+        "duration_s": 0.701042890548706,
+        "error": null
+      },
+      "proofs": {},
+      "scorecard": {
+        "case_name": "TrueVault",
+        "is_sound": true,
+        "hits": "set()",
+        "noise": "{'other'}",
+        "misses": "set()",
+        "named_anything": true,
+        "proofs_expected": 0,
+        "proofs_landed": 0,
+        "unbacked_claims": 0,
+        "cost_usd": 0.0,
+        "duration_s": 0.701042890548706,
+        "error": null
+      }
+    }
+  ]
+}
