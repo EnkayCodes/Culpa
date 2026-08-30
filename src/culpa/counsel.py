@@ -1,16 +1,22 @@
 """The model Culpa consults — Google Gemini via the free-tier API.
 
 Get a key at https://aistudio.google.com/apikey (no card needed) and put it in .env as
-GEMINI_API_KEY. The free tier is plenty for staged runs; nothing is billed.
+GEMINI_API_KEY.
 
-Each consultation is a single question with a single answer: no tools. Culpa drives the real
-work (running Slither, staging exploits) itself.
+The real free-tier constraint is requests-per-DAY, and it is per-model. As of writing:
+  gemini-2.5-flash        ~20/day   (do not use for real runs)
+  gemini-2.0-flash        ~200/day
+  gemini-2.5-flash-lite   ~1000/day (default — most headroom)
+Check https://ai.google.dev/gemini-api/docs/rate-limits for current numbers.
+
+Each consultation is a single question with a single answer: no tools.
 """
 from __future__ import annotations
 
 import json
 import os
 import re
+import time
 from dataclasses import dataclass
 
 from .preferences import preferences
@@ -18,9 +24,12 @@ from .preferences import preferences
 # Notional per-million-token prices, for the write-up only. The free tier bills nothing.
 _NOTIONAL_PER_MTOK: dict[str, tuple[float, float]] = {
     "gemini-2.5-flash": (0.30, 2.50),
+    "gemini-2.5-flash-lite": (0.10, 0.40),
     "gemini-2.5-pro": (1.25, 10.0),
     "gemini-2.0-flash": (0.10, 0.40),
 }
+
+_MAX_429_RETRIES = 4
 
 
 @dataclass
@@ -30,7 +39,7 @@ class Reply:
     tokens_out: int
     cost_usd: float          # notional; the free tier is not billed
     model: str
-    session_id: str = ""     # Gemini response id, when present
+    session_id: str = ""
 
     def as_json(self):
         return dig_out_json(self.text)
@@ -54,34 +63,48 @@ def _key() -> str:
 
 
 def _notional(model: str, tin: int, tout: int) -> float:
-    pin, pout = _NOTIONAL_PER_MTOK.get(model, (0.30, 2.50))
+    pin, pout = _NOTIONAL_PER_MTOK.get(model, (0.10, 0.40))
     return tin / 1e6 * pin + tout / 1e6 * pout
+
+
+def _retry_after_seconds(err: Exception) -> float | None:
+    m = re.search(r"retry(?:Delay)?['\":\s]+\s*(\d+(?:\.\d+)?)\s*s", str(err), re.I)
+    return float(m.group(1)) if m else None
 
 
 def ask(instructions: str, question: str, *, model: str | None = None,
         max_tokens: int | None = None, temperature: float = 0.0) -> Reply:
-    """Ask the model one question."""
+    """Ask the model one question, backing off on 429 rate limits."""
     from google import genai
+    from google.genai import errors as genai_errors
     from google.genai import types
 
     prefs = preferences()
     model = model or prefs["model"]
     max_tokens = max_tokens or prefs["max_tokens"]
-
     client = genai.Client(api_key=_key())
-    resp = client.models.generate_content(
-        model=model,
-        contents=question,
-        config=types.GenerateContentConfig(
-            system_instruction=instructions,
-            temperature=temperature,
-            max_output_tokens=max_tokens,
-            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
-            # 2.5-flash thinks by default and thinking tokens eat max_output_tokens, which
-            # truncated exploit files mid-line. Turn it off for these single-shot tasks.
-            thinking_config=types.ThinkingConfig(thinking_budget=0),
-        ),
+
+    config = types.GenerateContentConfig(
+        system_instruction=instructions,
+        temperature=temperature,
+        max_output_tokens=max_tokens,
+        automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+        thinking_config=types.ThinkingConfig(thinking_budget=0),
     )
+
+    last_err: Exception | None = None
+    for attempt in range(_MAX_429_RETRIES):
+        try:
+            resp = client.models.generate_content(model=model, contents=question, config=config)
+            break
+        except genai_errors.ClientError as e:  # noqa: PERF203
+            last_err = e
+            if getattr(e, "code", None) != 429 or attempt == _MAX_429_RETRIES - 1:
+                raise
+            wait = _retry_after_seconds(e) or 8 * (attempt + 1)
+            time.sleep(min(wait + 1, 65))
+    else:  # pragma: no cover
+        raise last_err  # type: ignore[misc]
 
     text = (resp.text or "").strip()
     usage = getattr(resp, "usage_metadata", None)
@@ -105,14 +128,11 @@ def dig_out_json(text: str):
     if fence:
         text = fence.group(1).strip()
 
-    # Whole thing first — the common case once fences are off.
     try:
         return json.loads(text)
     except json.JSONDecodeError:
         pass
 
-    # Fallback: slice to a bracket pair, preferring whichever bracket opens first
-    # (so an array of objects isn't mistaken for its first element).
     spans = []
     for opener, closer in (("[", "]"), ("{", "}")):
         i, j = text.find(opener), text.rfind(closer)

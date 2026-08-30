@@ -1,13 +1,15 @@
 # How Culpa runs. Env vars (CULPA_*) win over these; see .env.example.
 
-# Google Gemini model id. Free tier: gemini-2.5-flash (workhorse) or gemini-2.0-flash.
-# gemini-2.5-pro is stronger but has a much smaller free-tier daily quota.
-model: gemini-2.5-flash
+# Google Gemini model id. The free-tier limit that bites is requests-per-DAY, per model:
+#   gemini-2.5-flash-lite  ~1000/day  (default)
+#   gemini-2.0-flash       ~200/day   (better at code — use for the hard cases)
+#   gemini-2.5-flash       ~20/day    (do not use for real runs)
+model: gemini-2.5-flash-lite
 max_tokens: 16000
 
 sleuth:
-  max_leads: 6
-  max_proof_attempts: 3
+  max_leads: 4
+  max_proof_attempts: 2
   min_severity_to_prove: medium      # only medium/high leads get an exploit written
   demote_unproven_high: false        # if true, a high-sev finding with no landed exploit is downgraded
 
