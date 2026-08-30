@@ -91,18 +91,15 @@ Subject source (reference):
 Answer ONLY with the .t.sol file contents. No prose, no code fences."""
 
 CLOSING_INSTRUCTIONS = (
-    "You close the case. Be conservative: a claim without a landed exploit is a lead, not a "
-    "finding. A lead whose exploit failed to compile or failed to land is NOT a finding unless "
-    "the code is still clearly wrong on inspection — and then only at low confidence."
+    "You are writing the audit note for flaws that have ALREADY been proven with a landed "
+    "on-chain exploit. For each, write one or two crisp sentences an engineer would sign: what "
+    "the flaw is, how the attack works, and the impact. No hedging — these are confirmed."
 )
 
-CLOSING_QUESTION = """Leads and how their exploits fared:
+CLOSING_QUESTION = """Proven flaws (each has a landed exploit):
 {ledger}
 
-Give the final findings. Answer ONLY with JSON:
+Answer ONLY with JSON, one object per flaw, keeping the same id:
 [
-  {{"category": ..., "severity": "high|medium|low", "confidence": 0..1,
-    "title": short, "lines": [int], "rationale": "why it is exploitable, tied to the proof",
-    "proof_label": <label or null>, "proven": true|false}}
-]
-Confidence is 0.9 or more ONLY when an exploit landed. Drop plain false alarms entirely."""
+  {{"id": "<the id above>", "rationale": "1-2 sentence confirmed-finding write-up"}}
+]"""

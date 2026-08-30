@@ -126,30 +126,49 @@ class Sleuth:
         return draft
 
     def _close(self, case, ledger, dossier, book) -> None:
+        """Build findings straight from the ledger. A proven lead is a finding with its
+        exploit attached; an unproven high/medium lead is a low-confidence lead; unproven
+        low-severity leads are dropped."""
+        rationale = self._polish_rationales(ledger, dossier, book)
+        for e in ledger:
+            proven = bool(e.get("proven"))
+            sev = str(e.get("severity", "medium")).lower()
+            sev = sev if sev in ("high", "medium", "low") else "medium"
+            if not proven and _SEV_RANK.get(sev, 2) < _SEV_RANK["medium"]:
+                continue
+            lead_id = e.get("id", "")
+            dossier.findings.append(Finding(
+                category=to_canonical(str(e.get("category", "other"))),
+                severity=sev,
+                confidence=0.95 if proven else 0.35,
+                title=str(e.get("title") or f"{e.get('category', 'flaw')} in {case.name}")[:120],
+                rationale=(rationale.get(lead_id) or str(e.get("how", "")))[:800],
+                source="sleuth",
+                proof=e.get("draft") if proven else None,
+            ))
+
+    def _polish_rationales(self, ledger, dossier, book) -> dict:
+        """One optional model call to phrase each proven finding well. Failure is non-fatal."""
+        proven = [e for e in ledger if e.get("proven")]
+        if not proven:
+            return {}
         told = "\n".join(
-            f"{e.get('id')}: {e.get('category')} sev={e.get('severity')} "
-            f"proven={e.get('proven')} snag={e.get('snag') or e.get('why') or '-'}"
-            for e in ledger
-        ) or "(no leads)"
+            f"{e.get('id')}: {e.get('category')} sev={e.get('severity')} — {e.get('how', '')}"
+            for e in proven
+        )
         q = briefings.CLOSING_QUESTION.format(ledger=told)
         book.asked(briefings.CLOSING_INSTRUCTIONS, q, stage="closing")
-        reply = ask(briefings.CLOSING_INSTRUCTIONS, q)
-        book.heard(reply)
-        dossier.cost_usd += reply.cost_usd
-
-        drafts = {e["proof_label"]: e.get("draft") for e in ledger if e.get("proof_label")}
-        for f in reply.as_list():
-            sev = f.get("severity")
-            dossier.findings.append(Finding(
-                category=to_canonical(str(f.get("category", "other"))),
-                severity=str(sev).lower() if sev in ("high", "medium", "low") else "medium",
-                confidence=float(f.get("confidence", 0.5)),
-                title=str(f.get("title", ""))[:120],
-                lines=[int(x) for x in f.get("lines", []) if isinstance(x, (int, float))][:20],
-                rationale=str(f.get("rationale", ""))[:800],
-                source="sleuth",
-                proof=drafts.get(f.get("proof_label")),
-            ))
+        try:
+            reply = ask(briefings.CLOSING_INSTRUCTIONS, q)
+            book.heard(reply)
+            dossier.cost_usd += reply.cost_usd
+            return {
+                str(f.get("id") or f.get("proof_label") or ""): str(f.get("rationale", ""))
+                for f in reply.as_list()
+            }
+        except Exception as exc:  # noqa: BLE001
+            book.snag(f"closing polish failed (non-fatal): {exc}")
+            return {}
 
 
 # -- helpers -------------------------------------------------------------- #
