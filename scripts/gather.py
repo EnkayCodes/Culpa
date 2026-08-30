@@ -24,7 +24,7 @@ REPOS = {
 
 
 def _clone(url: str) -> Path:
-    tmp = Path(tempfile.mkdtemp(prefix="marlowe-"))
+    tmp = Path(tempfile.mkdtemp(prefix="culpa-"))
     subprocess.run(["git", "clone", "--depth", "1", url, str(tmp)], check=True)
     return tmp
 

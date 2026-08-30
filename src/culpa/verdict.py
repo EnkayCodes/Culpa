@@ -1,4 +1,4 @@
-"""How Marlowe keeps score. Pure functions, no I/O — covered by tests/test_verdict.py.
+"""How Culpa keeps score. Pure functions, no I/O — covered by tests/test_verdict.py.
 
 Detection is weighed as a multi-label problem over canonical flaw kinds:
   - hit  : a kind the investigator named that is in the known truth

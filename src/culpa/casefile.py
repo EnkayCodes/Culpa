@@ -1,4 +1,4 @@
-"""Shared types. Every part of Marlowe speaks these.
+"""Shared types. Every part of Culpa speaks these.
 
 A *case* is a contract (or set of contracts) brought in for investigation, with the truth we
 already know about it. An *investigator* produces a *dossier* of *findings*. A finding worth its

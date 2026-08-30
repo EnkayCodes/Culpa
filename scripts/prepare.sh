@@ -29,6 +29,6 @@ else
 fi
 
 echo "==> run every committed reference exploit"
-marlowe verify || echo "(expected to fail until forge-std is in place; run 'marlowe verify' again afterwards)"
+culpa verify || echo "(expected to fail until forge-std is in place; run 'culpa verify' again afterwards)"
 
-echo "done. Next: cp .env.example .env, then 'marlowe check'"
+echo "done. Next: cp .env.example .env, then 'culpa check'"

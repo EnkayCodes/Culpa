@@ -1,6 +1,6 @@
 """Orchestration wiring, exercised offline with a stub investigator and stub proof stage."""
-import marlowe.proceedings as proceedings
-from marlowe.casefile import Dossier, ExploitDraft, Finding, ProofOutcome
+import culpa.proceedings as proceedings
+from culpa.casefile import Dossier, ExploitDraft, Finding, ProofOutcome
 
 
 class StubInvestigator:

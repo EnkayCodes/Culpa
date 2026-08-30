@@ -9,25 +9,25 @@ prepare:
 	@command -v solc-select >/dev/null && solc-select install $(SOLC_VERSIONS) || echo "solc-select missing; needed for the old-solc cases"
 
 check:
-	marlowe check
+	culpa check
 
 look-scanner:
-	marlowe investigate --who scanner --cases quick --into findings/scanner.json
+	culpa investigate --who scanner --cases quick --into findings/scanner.json
 
 look-firstglance:
-	marlowe investigate --who first-glance --cases quick --into findings/firstglance.json
+	culpa investigate --who first-glance --cases quick --into findings/firstglance.json
 
 look-sleuth:
-	marlowe investigate --who sleuth --cases quick --into findings/sleuth.json
+	culpa investigate --who sleuth --cases quick --into findings/sleuth.json
 
 look-sleuth-hard:
-	marlowe investigate --who sleuth --cases hard --into findings/sleuth_hard.json
+	culpa investigate --who sleuth --cases hard --into findings/sleuth_hard.json
 
 compare:
-	marlowe compare findings/scanner.json findings/sleuth.json --into findings/comparison.md
+	culpa compare findings/scanner.json findings/sleuth.json --into findings/comparison.md
 
 verify:
-	marlowe verify
+	culpa verify
 
 prove-hallofmirrors:
 	cp casework/proofs/HallOfMirrors.t.sol proofground/test/staged/ProveHallOfMirrors.t.sol

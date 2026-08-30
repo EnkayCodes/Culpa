@@ -1,6 +1,6 @@
 """Every case file holds up, and the lexicon stays canonical."""
-from marlowe.caseload import load_cases, load_schema, resolve_in_casework
-from marlowe.lexicon import FLAW_KINDS, to_canonical
+from culpa.caseload import load_cases, load_schema, resolve_in_casework
+from culpa.lexicon import FLAW_KINDS, to_canonical
 
 
 def test_every_case_holds_up():
@@ -26,7 +26,7 @@ def test_provable_cases_point_at_a_real_file():
 
 
 def test_schema_loads():
-    assert load_schema()["title"] == "Marlowe case file"
+    assert load_schema()["title"] == "Culpa case file"
 
 
 def test_to_canonical_examples():

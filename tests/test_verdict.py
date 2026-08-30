@@ -1,10 +1,10 @@
 """The scoring math — the heart of 'measured improvement'."""
 import pytest
 
-from marlowe.casefile import (
+from culpa.casefile import (
     Case, Dossier, ExpectedProof, ExploitDraft, Finding, KnownFlaw, KnownTruth, ProofOutcome,
 )
-from marlowe.verdict import tally, weigh_case
+from culpa.verdict import tally, weigh_case
 
 
 def _case(name, kinds, vulnerable=True, provable=False):

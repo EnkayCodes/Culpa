@@ -1,4 +1,4 @@
-"""The `marlowe` command line."""
+"""The `culpa` command line."""
 from __future__ import annotations
 
 import shutil
@@ -8,7 +8,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-app = typer.Typer(add_completion=False, help="Marlowe — finds a flaw, then proves it with a working exploit")
+app = typer.Typer(add_completion=False, help="Culpa — finds a flaw, then proves it with a working exploit")
 console = Console()
 
 

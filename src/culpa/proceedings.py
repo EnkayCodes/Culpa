@@ -29,7 +29,7 @@ def try_cases(investigator_kind: str, selection: str, limit: int | None = None,
         step(i, len(cases), case.name)
         dossier: Dossier = investigator.look(case)
 
-        # Marlowe re-stages every exploit itself, so both baselines and the sleuth are judged
+        # Culpa re-stages every exploit itself, so both baselines and the sleuth are judged
         # by the exact same standard.
         outcomes: dict[str, ProofOutcome] = {}
         for f in dossier.findings:

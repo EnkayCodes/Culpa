@@ -2,13 +2,13 @@
 
 ## Fastest path: GitHub Codespaces
 
-The repo ships a `.devcontainer/` that installs Foundry, solc, and Marlowe automatically on a
+The repo ships a `.devcontainer/` that installs Foundry, solc, and Culpa automatically on a
 fast cloud connection. Push this repo to GitHub, click **Code → Codespaces → Create**, wait for
 setup, then:
 
 ```bash
 echo 'GEMINI_API_KEY=your-key' >> .env
-marlowe consult && marlowe verify
+culpa consult && culpa verify
 ```
 
 The rest of this guide is the manual route for a local machine.
@@ -16,7 +16,7 @@ The rest of this guide is the manual route for a local machine.
 ---
 
 Written for someone on a **clean machine**. Rough runtime for the quick set: ~3 min for the
-scanner, ~15–40 min for the sleuth (depends on exploit retries). No bill — Marlowe consults
+scanner, ~15–40 min for the sleuth (depends on exploit retries). No bill — Culpa consults
 **Google Gemini** on its free tier.
 
 ## 1. What you need
@@ -44,7 +44,7 @@ python3-pip python3-venv build-essential`.
 ## 2. Install
 
 ```bash
-git clone <this repo> && cd marlowe
+git clone <this repo> && cd culpa
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 bash scripts/prepare.sh
@@ -58,7 +58,7 @@ cp .env.example .env
 
 - `GEMINI_API_KEY` — from https://aistudio.google.com/apikey. Required for `consult`,
   `first-glance`, and `sleuth`.
-- `MARLOWE_MODEL` — `gemini-2.5-flash` (default), `gemini-2.0-flash`, or `gemini-2.5-pro`
+- `CULPA_MODEL` — `gemini-2.5-flash` (default), `gemini-2.0-flash`, or `gemini-2.5-pro`
   (stronger, small free-tier quota).
 - `MAINNET_RPC_URL` — an archive node, only for fork cases.
 
@@ -75,14 +75,14 @@ Five cases ship in the repo (`HollowVault`, `OpenTill`, `Irongate`, `LatchGate`,
 ## 5. Run it
 
 ```bash
-marlowe check                            # cases hold up; forge / slither / key on hand?
-marlowe consult                          # one tiny call — does the Gemini key work?
-marlowe verify                           # every committed reference exploit compiles and lands
-marlowe investigate --who scanner       --cases quick --into findings/scanner.json
-marlowe investigate --who first-glance  --cases quick --into findings/firstglance.json
-marlowe investigate --who sleuth        --cases easy  --into findings/sleuth_easy.json
-marlowe compare findings/scanner.json findings/sleuth_easy.json --into findings/comparison.md
-marlowe read findings/sleuth_easy.json --case OpenTill
+culpa check                            # cases hold up; forge / slither / key on hand?
+culpa consult                          # one tiny call — does the Gemini key work?
+culpa verify                           # every committed reference exploit compiles and lands
+culpa investigate --who scanner       --cases quick --into findings/scanner.json
+culpa investigate --who first-glance  --cases quick --into findings/firstglance.json
+culpa investigate --who sleuth        --cases easy  --into findings/sleuth_easy.json
+culpa compare findings/scanner.json findings/sleuth_easy.json --into findings/comparison.md
+culpa read findings/sleuth_easy.json --case OpenTill
 ```
 
 Free-tier Gemini is rate-limited (a handful of requests per minute). A full sleuth run over

@@ -1,9 +1,9 @@
-"""The model Marlowe consults — Google Gemini via the free-tier API.
+"""The model Culpa consults — Google Gemini via the free-tier API.
 
 Get a key at https://aistudio.google.com/apikey (no card needed) and put it in .env as
 GEMINI_API_KEY. The free tier is plenty for staged runs; nothing is billed.
 
-Each consultation is a single question with a single answer: no tools. Marlowe drives the real
+Each consultation is a single question with a single answer: no tools. Culpa drives the real
 work (running Slither, staging exploits) itself.
 """
 from __future__ import annotations
@@ -34,6 +34,13 @@ class Reply:
 
     def as_json(self):
         return dig_out_json(self.text)
+
+    def as_list(self) -> list:
+        """The reply parsed as a list of dicts (a lone object is wrapped)."""
+        data = dig_out_json(self.text)
+        if isinstance(data, dict):
+            return [data]
+        return [x for x in data if isinstance(x, dict)] if isinstance(data, list) else []
 
 
 def _key() -> str:
@@ -89,16 +96,28 @@ def ask(instructions: str, question: str, *, model: str | None = None,
 
 
 def dig_out_json(text: str):
-    """Pull the first JSON object or array out of a reply."""
+    """Pull the JSON object or array out of a reply."""
     text = text.strip()
     fence = re.search(r"```(?:json)?\s*(.*?)```", text, re.S)
     if fence:
         text = fence.group(1).strip()
-    for opener, closer in (("{", "}"), ("[", "]")):
+
+    # Whole thing first — the common case once fences are off.
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
+
+    # Fallback: slice to a bracket pair, preferring whichever bracket opens first
+    # (so an array of objects isn't mistaken for its first element).
+    spans = []
+    for opener, closer in (("[", "]"), ("{", "}")):
         i, j = text.find(opener), text.rfind(closer)
         if i != -1 and j != -1 and j > i:
-            try:
-                return json.loads(text[i:j + 1])
-            except json.JSONDecodeError:
-                pass
+            spans.append((i, text[i:j + 1]))
+    for _, blob in sorted(spans):
+        try:
+            return json.loads(blob)
+        except json.JSONDecodeError:
+            continue
     raise ValueError(f"no JSON in reply: {text[:200]!r}")

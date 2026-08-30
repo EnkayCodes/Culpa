@@ -1,4 +1,4 @@
-"""The vocabulary Marlowe uses for kinds of flaws, and how to translate other tools' terms.
+"""The vocabulary Culpa uses for kinds of flaws, and how to translate other tools' terms.
 
 The verdict matches a finding to known truth by exact canonical kind, so all the aliasing of
 Slither check names, SWC codes, and loose model phrasing lives here.

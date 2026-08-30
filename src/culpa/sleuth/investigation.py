@@ -24,7 +24,7 @@ _SEV_RANK = {"high": 3, "medium": 2, "low": 1, "info": 0}
 
 
 class Sleuth:
-    name = "marlowe-sleuth"
+    name = "culpa-sleuth"
 
     def look(self, case: Case) -> Dossier:
         prefs = preferences()["sleuth"]
@@ -94,7 +94,7 @@ class Sleuth:
         book.heard(reply)
         dossier.cost_usd += reply.cost_usd
         dossier.model = reply.model
-        return [x for x in (reply.as_json() or []) if isinstance(x, dict)]
+        return reply.as_list()
 
     def _write_exploit(self, lead, proof_name, label, subject_file, briefing, fork_hint,
                        case: Case, on_fork: bool, book, tries: int) -> ExploitDraft:
@@ -138,9 +138,7 @@ class Sleuth:
         dossier.cost_usd += reply.cost_usd
 
         drafts = {e["proof_label"]: e.get("draft") for e in ledger if e.get("proof_label")}
-        for f in (reply.as_json() or []):
-            if not isinstance(f, dict):
-                continue
+        for f in reply.as_list():
             sev = f.get("severity")
             dossier.findings.append(Finding(
                 category=to_canonical(str(f.get("category", "other"))),

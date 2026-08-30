@@ -49,13 +49,13 @@ class FirstGlance:
         dossier.model = reply.model
         dossier.cost_usd = reply.cost_usd
         try:
-            items = reply.as_json()
+            items = reply.as_list()
         except ValueError as e:
             dossier.error = str(e)
             dossier.duration_s = time.time() - start
             return dossier
 
-        for it in items if isinstance(items, list) else []:
+        for it in items:
             sev = it.get("severity")
             dossier.findings.append(
                 Finding(

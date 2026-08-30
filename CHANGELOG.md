@@ -1,6 +1,6 @@
 # Improvement changelog
 
-The story of how Marlowe went from a plain scan to a sleuth that proves its findings. Every row
+The story of how Culpa went from a plain scan to a sleuth that proves its findings. Every row
 should point at evidence in `findings/`. Replace the placeholder numbers as you run.
 
 ## The task and the number that matters

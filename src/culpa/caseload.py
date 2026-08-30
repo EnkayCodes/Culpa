@@ -1,4 +1,4 @@
-"""Load and check the cases Marlowe works through."""
+"""Load and check the cases Culpa works through."""
 from __future__ import annotations
 
 import json

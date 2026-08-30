@@ -1,4 +1,4 @@
-# Marlowe runs in Linux (Codespaces / WSL / CI). Keep LF in the repo so shell scripts and
+# Culpa runs in Linux (Codespaces / WSL / CI). Keep LF in the repo so shell scripts and
 # Solidity behave regardless of where they were edited.
 * text=auto eol=lf
 *.sh text eol=lf
