@@ -36,10 +36,14 @@ casework/proofs/*
 !casework/proofs/GlassJaw.t.sol
 !casework/proofs/FlashFarm.t.sol
 
-# run output
+# run output — working runs are ignored; the canonical submission run lives in submission/
 findings/*
 !findings/.gitkeep
 casebooks/*
 !casebooks/.gitkeep
 proofground/test/staged/*
 !proofground/test/staged/.gitkeep
+
+# submission/ is tracked in full — it holds the frozen run the judges review
+!submission/
+!submission/**
