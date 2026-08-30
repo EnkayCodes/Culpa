@@ -14,16 +14,13 @@ echo "== forge-std =="
   || git clone --depth 1 https://github.com/foundry-rs/forge-std proofground/lib/forge-std
 
 echo "== python + marlowe =="
-pip install --user -e ".[dev]"
-pip install --user solc-select
-python -m solc_select.__main__ install 0.8.20 0.4.24 0.5.16 0.6.12 0.7.6 || true
-python -m solc_select.__main__ use 0.8.20 || true
+pip install -e ".[dev]"
+solc-select install 0.8.20 0.4.24 0.5.16 0.6.12 0.7.6 || true
+solc-select use 0.8.20 || true
 
 echo "== smoke =="
-export PATH="$HOME/.local/bin:$HOME/.foundry/bin:$PATH"
 marlowe check || true
-marlowe verify || echo "(verify needs the reference exploits to compile — check the error)"
+marlowe verify || echo "(verify needs the reference exploits to compile — read the error above)"
 
 echo
-echo "Done. Add your key:  echo 'GEMINI_API_KEY=...' >> .env"
-echo "Then:  marlowe consult"
+echo "Next:  echo 'GEMINI_API_KEY=your-key' >> .env   then   marlowe consult"
