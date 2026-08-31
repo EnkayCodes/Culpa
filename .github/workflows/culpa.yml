@@ -30,7 +30,7 @@ jobs:
       - uses: foundry-rs/foundry-toolchain@v1
 
       - name: forge-std
-        run: forge install foundry-rs/forge-std --root proofground --no-git
+        run: git clone --depth 1 https://github.com/foundry-rs/forge-std proofground/lib/forge-std
 
       - name: Reference exploits compile and land
         run: culpa verify
